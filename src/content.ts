@@ -3,32 +3,32 @@ import { ScreenshotModule } from './modules/screenshot';
 import { MillisecondsModule } from './modules/milliseconds';
 import { CoverPreviewModule } from './modules/coverPreview';
 
+// === 第一部分：封面预览 (全局功能) ===
+// 它不依赖播放器 UI，直接启动。
+// 即使当前页面没有视频链接，它监听全局鼠标事件也不会有性能问题。
+CoverPreviewModule.init();
+
+// === 第二部分：播放器增强 (特定功能) ===
+// 只有当页面里真的有播放器时，才运行这部分代码
 const Core = (() => {
-    /**
-     * 检查播放器是否加载完成，并初始化模块
-     */
     function check(): void {
-        // B站播放器控制栏选择器（兼容旧版和新版）
+        // 1. 寻找播放器控制栏
         const controls = document.querySelector('.bpx-player-control-bottom-right') ||
                          document.querySelector('.bilibili-player-video-control-bottom-right');
-
-        // 我们需要把 controls 断言为 HTMLElement 才能传给模块
         if (controls && controls instanceof HTMLElement) {
-            // 初始化各个功能模块
+            // 只有找到控制栏，才初始化这些模块
             RotationModule.init(controls);
             ScreenshotModule.init(controls);
             MillisecondsModule.init();
 
-            // 尝试修复跨域问题，以便截图功能正常工作
+            // 修复跨域
             const video = document.querySelector('video');
             if (video && !video.getAttribute('crossOrigin')) {
                 video.setAttribute('crossOrigin', 'anonymous');
             }
         }
     }
-    CoverPreviewModule.init();
-    // 使用 MutationObserver 监听 DOM 变化，等待播放器加载
-    // 相比 setInterval，Observer 更高效且反应更快
+    // 监听 DOM 变化，因为 B 站是单页应用(SPA)，播放器可能是后加载出来的
     const observer = new MutationObserver(check);
     observer.observe(document.body, { childList: true, subtree: true });
 })();

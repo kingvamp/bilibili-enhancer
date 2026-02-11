@@ -28,7 +28,10 @@
       "matches": [
         "*://www.bilibili.com/video/*",
         "*://www.bilibili.com/bangumi/play/*",
-        "*://www.bilibili.com/list/*"
+        "*://www.bilibili.com/list/*",
+
+        "*://www.bilibili.com/watchlater/*", 
+        "*://space.bilibili.com/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
