@@ -1,20 +1,11 @@
-# 依赖包 (绝对不要上传这个！体积巨大)
 node_modules/
-
-# 编译输出目录 (一般不上传，让别人自己 npm run build)
 dist/
-
-# Mac 系统生成的垃圾文件
 .DS_Store
-
-# Windows 系统生成的垃圾文件
 Thumbs.db
 
-# 日志文件
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# 编辑器配置 (可选)
 .vscode/
 .idea/

@@ -2,8 +2,6 @@ import { RotationModule } from './modules/rotation';
 import { ScreenshotModule } from './modules/screenshot';
 import { MillisecondsModule } from './modules/milliseconds';
 
-console.log('B站增强插件：核心模块加载中...');
-
 const Core = (() => {
     /**
      * 检查播放器是否加载完成，并初始化模块

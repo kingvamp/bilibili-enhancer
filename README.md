@@ -1,7 +1,7 @@
-# Bilibili Player Enhancer (B站播放器增强插件)
+# Bilibili Enhancer (B站增强插件)
 
 这是一个 Chrome 浏览器扩展，基于 TypeScript 和 Webpack 开发。
-它可以为 B 站播放器添加实用的增强功能。
+它可以为B站网页添加实用的增强功能。
 
 ## ✨ 功能特性
 
