@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "B站增强",
   "version": "3.0",
-  "description": "B站体验增强工具：集成视频旋转、快捷截图(Shift+S)、毫秒级时间显示，以及全局视频列表的封面大图预览功能。",
+  "description": "B站全能助手：集成视频旋转/截图/毫秒时间、全局封面大图预览、以及已关注UP主高亮显示功能。",
   "icons": {
     "16": "icons/faviconV2.png",
     "48": "icons/faviconV2.png",
@@ -26,12 +26,7 @@
   "content_scripts": [
     {
       "matches": [
-        "*://www.bilibili.com/video/*",
-        "*://www.bilibili.com/bangumi/play/*",
-        "*://www.bilibili.com/list/*",
-
-        "*://www.bilibili.com/watchlater/*", 
-        "*://space.bilibili.com/*"
+        "*://*.bilibili.com/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"

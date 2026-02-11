@@ -1,22 +1,27 @@
 // src/background.ts
 
-// 监听来自 content script 的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    // 1. 之前的封面预览请求
     if (request.action === 'fetchCover') {
-        const bvid = request.bvid;
-        const url = `https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`;
-
+        const url = `https://api.bilibili.com/x/web-interface/view?bvid=${request.bvid}`;
         fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                // 转发成功的数据
-                sendResponse({ success: true, data: data });
-            })
-            .catch(error => {
-                // 转发错误
-                sendResponse({ success: false, error: error.toString() });
-            });
+            .then(res => res.json())
+            .then(data => sendResponse({ success: true, data: data }))
+            .catch(err => sendResponse({ success: false, error: err.toString() }));
+        return true; 
+    }
 
-        return true; // 告诉 Chrome 我们会异步发送响应
+    // 2. 新增：获取关注列表请求 (代理 fetch)
+    if (request.action === 'fetchFollowList') {
+        const { vmid, page, pageSize } = request;
+        const url = `https://api.bilibili.com/x/relation/followings?vmid=${vmid}&pn=${page}&ps=${pageSize}`;
+        
+        // 关键：credentials: 'include' 确保携带用户 Cookie (这样才能查看到私密的关注列表)
+        fetch(url, { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => sendResponse({ success: true, data: data }))
+            .catch(err => sendResponse({ success: false, error: err.toString() }));
+        
+        return true; // 异步响应
     }
 });
