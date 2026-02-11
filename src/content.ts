@@ -1,6 +1,7 @@
 import { RotationModule } from './modules/rotation';
 import { ScreenshotModule } from './modules/screenshot';
 import { MillisecondsModule } from './modules/milliseconds';
+import { CoverPreviewModule } from './modules/coverPreview';
 
 const Core = (() => {
     /**
@@ -25,7 +26,7 @@ const Core = (() => {
             }
         }
     }
-
+    CoverPreviewModule.init();
     // 使用 MutationObserver 监听 DOM 变化，等待播放器加载
     // 相比 setInterval，Observer 更高效且反应更快
     const observer = new MutationObserver(check);

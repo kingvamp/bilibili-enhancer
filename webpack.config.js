@@ -6,7 +6,8 @@ module.exports = {
   // 1. 修改 entry：变成多入口对象
   entry: {
     content: './src/content.ts',
-    popup: './src/popup/popup.ts' // 新增入口
+    background: './src/background.ts',
+    popup: './src/popup/popup.ts',
   },
   module: {
     rules: [

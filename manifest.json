@@ -4,11 +4,19 @@
   "version": "3.0",
   "description": "整合了视频旋转、截图(Shift+S)、毫秒级时间显示功能。",
   "icons": {
-    "32": "icons/faviconV2.png"
+    "16": "icons/faviconV2.png",
+    "48": "icons/faviconV2.png",
+    "128": "icons/faviconV2.png"
   },
   "permissions": [
     "storage" 
   ],
+  "host_permissions": [
+    "*://api.bilibili.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

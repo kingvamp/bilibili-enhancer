@@ -72,3 +72,13 @@ input:checked+.slider {
 input:checked+.slider:before {
     transform: translateX(14px);
 }
+
+.custom-select {
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    color: #333;
+    font-size: 12px;
+    outline: none;
+}
