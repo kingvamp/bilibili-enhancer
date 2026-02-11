@@ -1,9 +1,9 @@
 // src/popup/popup.ts
-
+import { STORAGE_KEYS } from '../constants';
 // === 配置项 Keys (必须与各模块中的保持一致) ===
-const STORAGE_KEY_MS = 'enable_ms_display';
-const STORAGE_KEY_COVER = 'cover_preview_size';
-const STORAGE_KEY_HIGHLIGHT = 'enable_highlight_follow';
+// const STORAGE_KEY_MS = 'enable_ms_display';
+// const STORAGE_KEY_COVER = 'cover_preview_size';
+// const STORAGE_KEY_HIGHLIGHT = 'enable_highlight_follow';
 
 // === 获取 DOM 元素 ===
 // 使用类型断言 (as HTML...) 方便后续获得代码提示和类型检查
@@ -34,21 +34,21 @@ function setupToggle(element: HTMLInputElement | null, key: string, defaultValue
 }
 
 // === 1. 初始化各个开关 ===
-setupToggle(toggleMs, STORAGE_KEY_MS);
-setupToggle(toggleHighlight, STORAGE_KEY_HIGHLIGHT);
+setupToggle(toggleMs, STORAGE_KEYS.MS_DISPLAY);
+setupToggle(toggleHighlight, STORAGE_KEYS.HIGHLIGHT);
 
 // === 2. 初始化封面尺寸选择 (Select 下拉框) ===
 if (selectCover) {
     // 读取设置
-    chrome.storage.sync.get([STORAGE_KEY_COVER], (result) => {
+    chrome.storage.sync.get([STORAGE_KEYS.COVER_SIZE], (result) => {
         // 默认为 'medium'
-        const val = (result[STORAGE_KEY_COVER] || 'medium') as string;
+        const val = (result[STORAGE_KEYS.COVER_SIZE] || 'medium') as string;
         selectCover.value = val;
     });
 
     // 监听变化
     selectCover.addEventListener('change', () => {
-        chrome.storage.sync.set({ [STORAGE_KEY_COVER]: selectCover.value });
+        chrome.storage.sync.set({ [STORAGE_KEYS.COVER_SIZE]: selectCover.value });
     });
 }
 

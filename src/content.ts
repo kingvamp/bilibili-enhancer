@@ -3,12 +3,18 @@ import { ScreenshotModule } from './modules/screenshot';
 import { MillisecondsModule } from './modules/milliseconds';
 import { CoverPreviewModule } from './modules/coverPreview';
 import { HighlightFollowedModule } from './modules/highlightFollowed';
+import { CoverDownloadModule } from './modules/coverDownload';
 
 // === 第一部分：封面预览 (全局功能) ===
 // 它不依赖播放器 UI，直接启动。
 // 即使当前页面没有视频链接，它监听全局鼠标事件也不会有性能问题。
 CoverPreviewModule.init();
 HighlightFollowedModule.init();
+
+// === 视频页专用功能 ===
+// 封面下载模块依赖 DOM 里的 Toolbar，可以独立初始化，也可以放在 Core 里
+// 建议独立初始化，因为它不依赖播放器内核，只依赖网页结构
+CoverDownloadModule.init();
 
 // === 第二部分：播放器增强 (特定功能) ===
 // 只有当页面里真的有播放器时，才运行这部分代码

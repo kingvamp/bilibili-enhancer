@@ -1,21 +1,15 @@
-// src/modules/coverPreview.ts
 import { Module } from '../types';
+import { COVER_SIZES, STORAGE_KEYS } from '../constants'; // 引入公共常量
 
-const STORAGE_KEY_COVER = 'cover_preview_size';
-// 定义尺寸配置
-const SIZES: Record<string, { w: number, h: number }> = {
-    small:  { w: 320, h: 180 },
-    medium: { w: 480, h: 270 },
-    large:  { w: 640, h: 360 }
-};
 const GAP = 15;
 
 let tooltip: HTMLElement | null = null;
 let img: HTMLImageElement | null = null;
-const coverCache: Record<string, string> = {};
-// 当前使用的宽高 (默认为中)
-let currentWidth = SIZES.medium.w;
-let currentHeight = SIZES.medium.h;
+const coverCache: Record<string, string> = {}; 
+
+// 当前使用的宽高 (默认为 medium)
+let currentWidth = COVER_SIZES.medium;
+let currentHeight = Math.round(COVER_SIZES.medium * 9 / 16); // 自动计算高度
 
 let currentListLeftX = 0;
 let isRunning = false;
@@ -158,11 +152,11 @@ function applySettings(value: string) {
         stop();
         return;
     }
-
-    // 2. 如果是其他值，更新尺寸并启动
-    if (SIZES[value]) {
-        currentWidth = SIZES[value].w;
-        currentHeight = SIZES[value].h;
+    // 2. 如果是有效尺寸，更新宽高
+    if (COVER_SIZES[value]) {
+        currentWidth = COVER_SIZES[value];
+        // 核心：根据 16:9 计算高度
+        currentHeight = Math.round(currentWidth * 9 / 16);
         
         // 如果 tooltip 已经存在，实时更新它的宽度
         if (tooltip) {
@@ -193,17 +187,15 @@ function stop() {
 
 export const CoverPreviewModule: Module = {
     init: () => {
-        // 1. 初始化读取
-        chrome.storage.sync.get([STORAGE_KEY_COVER], (result) => {
-            // 默认为 'medium'
-            const val = (result[STORAGE_KEY_COVER] || 'medium') as string;
+        // 使用常量文件里的 KEY
+        chrome.storage.sync.get([STORAGE_KEYS.COVER_SIZE], (result) => {
+            const val = (result[STORAGE_KEYS.COVER_SIZE] || 'medium') as string;
             applySettings(val);
         });
 
-        // 2. 监听变化
         chrome.storage.onChanged.addListener((changes) => {
-            if (changes[STORAGE_KEY_COVER]) {
-                const newVal = changes[STORAGE_KEY_COVER].newValue as string;
+            if (changes[STORAGE_KEYS.COVER_SIZE]) {
+                const newVal = changes[STORAGE_KEYS.COVER_SIZE].newValue as string;
                 applySettings(newVal);
             }
         });

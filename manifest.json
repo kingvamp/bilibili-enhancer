@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "B站增强",
-  "version": "3.0",
-  "description": "B站全能助手：集成视频旋转/截图/毫秒时间、全局封面大图预览、以及已关注UP主高亮显示功能。",
+  "version": "1.0.0",
+  "description": "B站全能助手：集成视频旋转/截图/毫秒时间、封面预览 & 一键下载 (支持高清原图)、以及已关注UP主高亮显示功能。",
   "icons": {
     "16": "icons/faviconV2.png",
     "48": "icons/faviconV2.png",
@@ -12,7 +12,8 @@
     "storage" 
   ],
   "host_permissions": [
-    "*://api.bilibili.com/*"
+    "*://api.bilibili.com/*",
+    "*://*.hdslb.com/*"
   ],
   "background": {
     "service_worker": "background.js"

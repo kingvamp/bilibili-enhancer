@@ -24,4 +24,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         
         return true; // 异步响应
     }
+    // 3. 新增：下载图片 (转为 Base64 返回，解决跨域下载问题)
+    if (request.action === 'fetchImageBlob') {
+        fetch(request.url)
+            .then(response => response.blob())
+            .then(blob => {
+                // 将 Blob 转为 DataURL (Base64) 传回给 Content Script
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    sendResponse({ success: true, data: reader.result });
+                };
+                reader.readAsDataURL(blob);
+            })
+            .catch(error => {
+                sendResponse({ success: false, error: error.toString() });
+            });
+        return true; // 异步等待
+    }
 });
