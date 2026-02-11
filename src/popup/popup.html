@@ -6,225 +6,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B站增强设置</title>
     <link rel="stylesheet" href="popup.css">
-    <style>
-        /* 简单的内联样式补充，也可以移到 popup.css */
-        body {
-            width: 240px;
-            padding: 12px;
-            font-family: "Helvetica Neue", sans-serif;
-            color: #333;
-        }
-
-        h2 {
-            font-size: 16px;
-            margin: 0 0 10px 0;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-        }
-
-        h3 {
-            font-size: 13px;
-            margin: 12px 0 8px 0;
-            color: #666;
-            font-weight: 600;
-        }
-
-        .setting-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            font-size: 13px;
-        }
-
-        .sub-item {
-            background: #f9f9f9;
-            padding: 6px 8px;
-            border-radius: 4px;
-            margin-top: -5px;
-            margin-bottom: 10px;
-            display: none;
-            /* 默认隐藏，由JS控制 */
-        }
-
-        /* 开关样式 */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 34px;
-            height: 18px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 14px;
-            width: 14px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background-color: #00A1D6;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(16px);
-        }
-
-        /* 下拉框样式 */
-        .custom-select {
-            padding: 3px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            font-size: 12px;
-            outline: none;
-            width: 100px;
-        }
-
-        /* 按钮区域 */
-        .actions {
-            margin-top: 5px;
-            text-align: center;
-        }
-
-        .btn {
-            background-color: #f6f7f8;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 6px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            width: 100%;
-            color: #333;
-        }
-
-        .btn:hover {
-            background-color: #e9eaeb;
-            border-color: #ccc;
-        }
-
-        .btn:active {
-            background-color: #d0d0d0;
-        }
-
-        .btn:disabled {
-            background-color: #eee;
-            color: #999;
-            cursor: not-allowed;
-        }
-
-        .footer {
-            font-size: 10px;
-            color: #999;
-            text-align: center;
-            margin-top: 15px;
-            border-top: 1px solid #eee;
-            padding-top: 8px;
-        }
-
-        hr {
-            border: 0;
-            border-top: 1px solid #eee;
-            margin: 12px 0;
-        }
-    </style>
 </head>
 
 <body>
+    <div class="header">
+        <h2>Bilibili Enhancer</h2>
+        <span class="version" id="app-version"></span>
+    </div>
+
     <div class="container">
-        <h2>B站增强设置</h2>
+        <div class="section-group">
+            <div class="group-title">播放与常规</div>
 
-        <div class="setting-item">
-            <span>显示毫秒时间</span>
-            <label class="switch">
-                <input type="checkbox" id="toggle-ms">
-                <span class="slider round"></span>
-            </label>
+            <div class="setting-item">
+                <div class="label-box">
+                    <span>显示毫秒时间</span>
+                    <span class="tooltip-icon" data-tooltip="在播放器进度条右侧显示精确到毫秒的时间戳">?</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-ms">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-item column-layout">
+                <div class="label-box">
+                    <span>封面预览大小</span>
+                </div>
+                <div class="segmented-control">
+                    <label>
+                        <input type="radio" name="cover-size" value="off">
+                        <span class="seg-item">关闭</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="cover-size" value="small">
+                        <span class="seg-item">小</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="cover-size" value="medium">
+                        <span class="seg-item">中</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="cover-size" value="large">
+                        <span class="seg-item">大</span>
+                    </label>
+                </div>
+            </div>
         </div>
 
-        <div class="setting-item">
-            <span>封面预览/下载大小</span>
-            <select id="select-cover-size" class="custom-select">
-                <option value="off">关闭</option>
-                <option value="small">小 (320px)</option>
-                <option value="medium">中 (480px)</option>
-                <option value="large">大 (640px)</option>
-            </select>
+        <div class="section-group">
+            <div class="group-title">缩略图信息增强</div>
+
+            <div class="setting-item column-layout">
+                <div class="label-box">
+                    <span>收藏/点赞状态显示</span>
+                </div>
+                <div class="segmented-control" id="status-mode-group">
+                    <label>
+                        <input type="radio" name="status-mode" value="off">
+                        <span class="seg-item">关闭</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="status-mode" value="text">
+                        <span class="seg-item">文字</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="status-mode" value="triangle">
+                        <span class="seg-item">角标</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <span>显示分辨率 (4K/1080P)</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-thumb-res">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-item">
+                <span>显示分P数量</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-thumb-pcount">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
 
-        <hr>
+        <div class="section-group">
+            <div class="group-title">社交互动</div>
 
-        <div class="setting-item">
-            <span>高亮已关注UP主</span>
-            <label class="switch">
-                <input type="checkbox" id="toggle-highlight">
-                <span class="slider round"></span>
-            </label>
+            <div class="setting-item">
+                <div class="label-box">
+                    <span>高亮已关注UP主</span>
+                    <span class="tooltip-icon" data-tooltip="在评论区、动态列表等位置，将已关注UP主的名字显示为醒目颜色">?</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-highlight">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <button id="btn-force-update" class="btn primary-btn">
+                <span class="icon">🔄</span> 同步关注列表
+            </button>
         </div>
-        <div class="actions">
-            <button id="btn-force-update" class="btn">🔄 同步关注列表</button>
-        </div>
+    </div>
 
-        <hr>
-
-        <h3>缩略图增强</h3>
-
-        <div class="setting-item">
-            <span>显示收藏/点赞状态</span>
-            <label class="switch">
-                <input type="checkbox" id="toggle-thumb-status">
-                <span class="slider round"></span>
-            </label>
-        </div>
-
-        <div class="setting-item sub-item" id="style-select-container">
-            <span>└ 标记样式</span>
-            <select id="select-thumb-style" class="custom-select" style="width: 90px;">
-                <option value="text">文字标签</option>
-                <option value="triangle">三角角标</option>
-            </select>
-        </div>
-
-        <div class="setting-item">
-            <span>显示分辨率 (4K/1080P)</span>
-            <label class="switch">
-                <input type="checkbox" id="toggle-thumb-res">
-                <span class="slider round"></span>
-            </label>
-        </div>
-
-        <div class="setting-item">
-            <span>显示分P数量</span>
-            <label class="switch">
-                <input type="checkbox" id="toggle-thumb-pcount">
-                <span class="slider round"></span>
-            </label>
-        </div>
-
-        <div class="footer">无需刷新立即生效</div>
+    <div class="footer">
+        修改即时生效，无需刷新
     </div>
 
     <script src="popup.js"></script>

@@ -1,110 +1,117 @@
 // src/popup/popup.ts
 import { STORAGE_KEYS } from '../constants';
 
-// === 1. 获取 DOM 元素 (使用类型断言) ===
-
-// 基础功能
-const toggleMs = document.getElementById('toggle-ms') as HTMLInputElement;
-const selectCover = document.getElementById('select-cover-size') as HTMLSelectElement;
-
-// 关注高亮
-const toggleHighlight = document.getElementById('toggle-highlight') as HTMLInputElement;
-const btnUpdate = document.getElementById('btn-force-update') as HTMLButtonElement;
-
-// 缩略图增强 (新增)
-const toggleThumbStatus = document.getElementById('toggle-thumb-status') as HTMLInputElement;
-const toggleThumbRes = document.getElementById('toggle-thumb-res') as HTMLInputElement;
-const toggleThumbPCount = document.getElementById('toggle-thumb-pcount') as HTMLInputElement;
-const selectThumbStyle = document.getElementById('select-thumb-style') as HTMLSelectElement;
-const styleContainer = document.getElementById('style-select-container') as HTMLElement;
-
-/**
- * 辅助函数：初始化并监听 Switch 开关 (Checkbox)
- * @param element Checkbox 元素
- * @param key Storage 存储键
- * @param defaultValue 默认值
- */
+// === 1. 辅助函数 ===
 function setupToggle(element: HTMLInputElement | null, key: string, defaultValue: boolean = true) {
     if (!element) return;
-
-    // 1. 初始化：从存储中读取状态
     chrome.storage.sync.get([key], (result) => {
-        // 🔥 修复点：添加 'as boolean' 类型断言
         const val = (result[key] !== undefined ? result[key] : defaultValue) as boolean;
         element.checked = val;
     });
-
-    // 2. 监听修改：保存到存储
     element.addEventListener('change', () => {
         chrome.storage.sync.set({ [key]: element.checked });
     });
 }
 
-// === 2. 初始化普通开关 ===
+// === 2. 获取 DOM 元素 ===
+
+// 常规设置 - 开关
+const toggleMs = document.getElementById('toggle-ms') as HTMLInputElement;
+
+// 常规设置 - 封面尺寸 (Radio 组)
+const coverRadios = document.querySelectorAll('input[name="cover-size"]');
+
+// 缩略图增强 - 开关
+const toggleThumbRes = document.getElementById('toggle-thumb-res') as HTMLInputElement;
+const toggleThumbPCount = document.getElementById('toggle-thumb-pcount') as HTMLInputElement;
+
+// 缩略图增强 - 状态与样式 (Radio 组)
+const statusRadios = document.querySelectorAll('input[name="status-mode"]');
+
+// 社交增强
+const toggleHighlight = document.getElementById('toggle-highlight') as HTMLInputElement;
+const btnUpdate = document.getElementById('btn-force-update') as HTMLButtonElement;
+
+
+// === 3. 初始化简单开关 ===
 setupToggle(toggleMs, STORAGE_KEYS.MS_DISPLAY);
 setupToggle(toggleHighlight, STORAGE_KEYS.HIGHLIGHT);
 setupToggle(toggleThumbRes, STORAGE_KEYS.THUMB_RES);
 setupToggle(toggleThumbPCount, STORAGE_KEYS.THUMB_PCOUNT);
 
-// === 3. 初始化带有联动逻辑的开关 (缩略图状态) ===
-if (toggleThumbStatus) {
-    setupToggle(toggleThumbStatus, STORAGE_KEYS.THUMB_STATUS);
 
-    // 联动逻辑：当关闭"显示状态"时，隐藏"样式选择"下拉框
-    const updateVisibility = () => {
-        if (styleContainer) {
-            styleContainer.style.display = toggleThumbStatus.checked ? 'flex' : 'none';
-        }
-    };
-
-    toggleThumbStatus.addEventListener('change', updateVisibility);
-
-    // 初始化时也检查一次显隐
-    chrome.storage.sync.get([STORAGE_KEYS.THUMB_STATUS], (result) => {
-        const isOn = (result[STORAGE_KEYS.THUMB_STATUS] ?? true) as boolean;
-        if (styleContainer) {
-            styleContainer.style.display = isOn ? 'flex' : 'none';
-        }
-    });
-}
-
-// === 4. 初始化下拉菜单 (Select) ===
-
-// 封面预览尺寸
-if (selectCover) {
+// === 4. 初始化封面尺寸选择 (Radio) ===
+if (coverRadios.length > 0) {
+    // A. 初始化回显
     chrome.storage.sync.get([STORAGE_KEYS.COVER_SIZE], (result) => {
-        // 🔥 修复点：添加 'as string' 断言
-        selectCover.value = (result[STORAGE_KEYS.COVER_SIZE] || 'medium') as string;
+        const val = (result[STORAGE_KEYS.COVER_SIZE] || 'medium') as string;
+        
+        // 找到对应的 Radio 并选中
+        coverRadios.forEach((radio) => {
+            const r = radio as HTMLInputElement;
+            if (r.value === val) {
+                r.checked = true;
+            }
+        });
     });
 
-    selectCover.addEventListener('change', () => {
-        chrome.storage.sync.set({ [STORAGE_KEYS.COVER_SIZE]: selectCover.value });
+    // B. 绑定点击事件
+    coverRadios.forEach((radio) => {
+        radio.addEventListener('change', (e) => {
+            const target = e.target as HTMLInputElement;
+            // 直接保存 value ('off', 'small', 'medium', 'large')
+            chrome.storage.sync.set({ [STORAGE_KEYS.COVER_SIZE]: target.value });
+        });
     });
 }
 
-// 缩略图状态样式 (文字/角标)
-if (selectThumbStyle) {
-    chrome.storage.sync.get([STORAGE_KEYS.THUMB_STYLE], (result) => {
-        // 🔥 修复点：添加 'as string' 断言
-        selectThumbStyle.value = (result[STORAGE_KEYS.THUMB_STYLE] || 'text') as string;
+
+// === 5. 初始化缩略图状态 (Radio) ===
+if (statusRadios.length > 0) {
+    // A. 初始化回显
+    chrome.storage.sync.get([STORAGE_KEYS.THUMB_STATUS, STORAGE_KEYS.THUMB_STYLE], (result) => {
+        const isEnable = (result[STORAGE_KEYS.THUMB_STATUS] ?? true) as boolean;
+        const style = (result[STORAGE_KEYS.THUMB_STYLE] || 'text') as string;
+
+        let targetValue = 'off';
+        if (isEnable) {
+            targetValue = style === 'triangle' ? 'triangle' : 'text';
+        }
+
+        statusRadios.forEach((radio) => {
+            const r = radio as HTMLInputElement;
+            if (r.value === targetValue) {
+                r.checked = true;
+            }
+        });
     });
 
-    selectThumbStyle.addEventListener('change', () => {
-        chrome.storage.sync.set({ [STORAGE_KEYS.THUMB_STYLE]: selectThumbStyle.value });
+    // B. 绑定点击事件
+    statusRadios.forEach((radio) => {
+        radio.addEventListener('change', (e) => {
+            const target = e.target as HTMLInputElement;
+            const val = target.value;
+
+            if (val === 'off') {
+                chrome.storage.sync.set({ [STORAGE_KEYS.THUMB_STATUS]: false });
+            } else {
+                chrome.storage.sync.set({
+                    [STORAGE_KEYS.THUMB_STATUS]: true,
+                    [STORAGE_KEYS.THUMB_STYLE]: val
+                });
+            }
+        });
     });
 }
-
-// === 5. 初始化操作按钮 (强制同步) ===
+// === 6. 初始化强制同步按钮 ===
 if (btnUpdate) {
     btnUpdate.addEventListener('click', () => {
-        // UI 反馈
-        const originalText = btnUpdate.innerText;
+        const originalHTML = btnUpdate.innerHTML;
         btnUpdate.innerText = "请求已发送...";
         btnUpdate.disabled = true;
         btnUpdate.style.cursor = "not-allowed";
         btnUpdate.style.opacity = "0.7";
 
-        // 发送消息给当前标签页
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs[0] && tabs[0].id) {
                 chrome.tabs.sendMessage(tabs[0].id, { action: 'forceUpdateFollowList' });
@@ -113,12 +120,19 @@ if (btnUpdate) {
             }
         });
 
-        // 2秒后恢复按钮
         setTimeout(() => {
-            btnUpdate.innerText = originalText;
+            btnUpdate.innerHTML = originalHTML;
             btnUpdate.disabled = false;
             btnUpdate.style.cursor = "pointer";
             btnUpdate.style.opacity = "1";
         }, 2000);
     });
+}
+// === 7. 自动显示当前版本号 ===
+const versionEl = document.getElementById('app-version');
+if (versionEl) {
+    // 获取 manifest.json 对象
+    const manifest = chrome.runtime.getManifest();
+    // 自动填充版本号 (例如: "v1.0.0")
+    versionEl.innerText = `v${manifest.version}`;
 }

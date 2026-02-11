@@ -1,37 +1,197 @@
+/* src/popup/popup.css */
+
+:root {
+    --primary-color: #00AEEC;
+    /* B站蓝 */
+    --primary-hover: #009CD6;
+    --bg-color: #f6f7f8;
+    --card-bg: #ffffff;
+    --text-main: #18191c;
+    --text-sub: #9499a0;
+    --border-color: #e3e5e7;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
 body {
-    width: 200px;
-    padding: 10px;
-    font-family: "Helvetica Neue", sans-serif;
+    width: 280px;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    color: var(--text-main);
+    user-select: none;
+    /* 防止文本被意外选中 */
 }
 
-h2 {
+/* === 头部样式 === */
+.header {
+    background-color: var(--card-bg);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 2000;
+    /* 确保头部在最上层 */
+}
+
+.header h2 {
+    margin: 0;
     font-size: 16px;
-    margin-top: 0;
-    color: #333;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 8px;
+    font-weight: 600;
+    color: var(--primary-color);
 }
 
+.version {
+    font-size: 11px;
+    color: var(--text-sub);
+    background: #f1f2f3;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.container {
+    padding: 12px;
+}
+
+/* === 分组卡片 === */
+.section-group {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+.group-title {
+    font-size: 12px;
+    color: var(--text-sub);
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* === 设置项行 === */
 .setting-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    line-height: 1.4;
+    position: relative;
+    /* 为 Tooltip 定位做参考 */
 }
 
-.footer {
+.setting-item:last-child {
+    margin-bottom: 0;
+}
+
+/* 垂直布局 (用于分段控制器) */
+.column-layout {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.column-layout .label-box {
+    margin-bottom: 8px;
+    /* 标签和控制器之间的间距 */
+    width: 100%;
+}
+
+/* === 标签区域 === */
+.label-box {
+    display: flex;
+    align-items: center;
+    /* 垂直居中对齐文字和问号图标 */
+    flex-direction: row;
+}
+
+/* === Tooltip (悬停提示) === */
+.tooltip-icon {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 14px;
+    height: 14px;
+    background-color: #e3e5e7;
+    color: #9499a0;
+    border-radius: 50%;
     font-size: 10px;
-    color: #999;
-    text-align: center;
-    margin-top: 15px;
+    margin-left: 6px;
+    cursor: help;
+    font-weight: bold;
+    font-family: monospace;
+    position: relative;
 }
 
-/* 开关样式 */
+.tooltip-icon:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* 提示框主体 */
+.tooltip-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 140%;
+    /* 位于图标上方 */
+    left: 50%;
+    transform: translateX(-50%);
+
+    background-color: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: normal;
+    width: max-content;
+    max-width: 180px;
+    /* 限制最大宽度 */
+    line-height: 1.4;
+    text-align: center;
+    z-index: 3000;
+
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 小三角箭头 */
+.tooltip-icon::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.85);
+
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    pointer-events: none;
+}
+
+.tooltip-icon:hover::after,
+.tooltip-icon:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* === Switch 开关 === */
 .switch {
     position: relative;
     display: inline-block;
-    width: 34px;
+    width: 36px;
     height: 20px;
+    flex-shrink: 0;
 }
 
 .switch input {
@@ -48,63 +208,126 @@ h2 {
     right: 0;
     bottom: 0;
     background-color: #ccc;
-    transition: .4s;
-    border-radius: 34px;
+    transition: .3s;
+    border-radius: 20px;
 }
 
 .slider:before {
     position: absolute;
     content: "";
-    height: 14px;
-    width: 14px;
-    left: 3px;
-    bottom: 3px;
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
     background-color: white;
-    transition: .4s;
+    transition: .3s;
     border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 input:checked+.slider {
-    background-color: #00A1D6;
+    background-color: var(--primary-color);
 }
 
-/* B站蓝 */
 input:checked+.slider:before {
-    transform: translateX(14px);
+    transform: translateX(16px);
 }
 
-.custom-select {
-    padding: 4px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    color: #333;
-    font-size: 12px;
-    outline: none;
-}
-
-.actions {
-    margin-top: 15px;
-    text-align: center;
-    border-top: 1px solid #eee;
-    padding-top: 10px;
-}
-
-.btn {
+/* === 分段控制器 (Radio Group) === */
+.segmented-control {
+    display: flex;
     background-color: #f1f2f3;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 6px 12px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: background 0.2s;
+    padding: 3px;
+    border-radius: 6px;
     width: 100%;
+    box-sizing: border-box;
 }
 
-.btn:hover {
-    background-color: #e6e7e8;
+.segmented-control label {
+    flex: 1;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
 }
 
-.btn:active {
-    background-color: #d0d0d0;
+.segmented-control input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.seg-item {
+    display: block;
+    padding: 5px 0;
+    font-size: 12px;
+    color: var(--text-sub);
+    border-radius: 4px;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+/* 选中状态 */
+.segmented-control input:checked+.seg-item {
+    background-color: #ffffff;
+    color: var(--primary-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 悬停状态 */
+.segmented-control label:hover .seg-item {
+    color: var(--text-main);
+}
+
+.segmented-control input:checked+.seg-item:hover {
+    color: var(--primary-color);
+}
+
+/* === 按钮 === */
+.btn {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 8px;
+    font-weight: 500;
+}
+
+.primary-btn {
+    background-color: #edf6fd;
+    /* 浅蓝背景 */
+    color: var(--primary-color);
+    border: 1px solid transparent;
+}
+
+.primary-btn:hover {
+    background-color: #dff0fb;
+}
+
+.primary-btn:active {
+    background-color: #cce9f9;
+}
+
+.primary-btn:disabled {
+    background-color: #f1f2f3;
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+.icon {
+    margin-right: 6px;
+    font-size: 14px;
+}
+
+/* === 页脚 === */
+.footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-sub);
+    padding: 4px 0 12px 0;
 }
