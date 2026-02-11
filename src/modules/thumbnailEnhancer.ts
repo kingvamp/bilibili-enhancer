@@ -11,7 +11,7 @@ const CSS_COMMON = `
         position: absolute; top: 0px; left: 50%; transform: translateX(-50%);
         background: rgba(0, 0, 0, 0.75); color: #fff; padding: 1px 5px;
         border-radius: 3px; font-size: 11px; font-weight: bold;
-        z-index: 10; pointer-events: none; backdrop-filter: blur(2px);
+        z-index: 998; pointer-events: none; backdrop-filter: blur(2px);
         border: 1px solid rgba(255,255,255,0.15); white-space: nowrap; line-height: 1.2;
     }
     .res-8k { background: linear-gradient(45deg, #d4af37, #f7e98d); color: #333; border: none; }
@@ -20,7 +20,7 @@ const CSS_COMMON = `
     .bili-p-count {
         position: absolute; top: 0px; left: 0px;
         background: rgba(0, 0, 0, 0.85); color: #fff; padding: 0 4px;
-        border-radius: 3px; font-size: 10px; z-index: 10; pointer-events: none;
+        border-radius: 3px; font-size: 10px; z-index: 998; pointer-events: none;
         border: 1px solid rgba(255,255,255,0.1); line-height: 1.4;
     }
 `;
@@ -29,7 +29,7 @@ const CSS_TEXT_MODE = `
     .my-status-tag {
         position: absolute; top: 0px; right: 0px; color: white;
         padding: 2px 4px; border-radius: 4px; font-size: 12px;
-        z-index: 11; pointer-events: none; line-height: 1;
+        z-index: 999; pointer-events: none; line-height: 1;
         box-shadow: 0 1px 3px rgba(0,0,0,0.5);
     }
     .tag-fav { background-color: #ff6699; }
@@ -39,7 +39,7 @@ const CSS_TEXT_MODE = `
 const CSS_TRIANGLE_MODE = `
     .my-status-tag {
         position: absolute; top: 0; right: 0; width: 0; height: 0;
-        z-index: 11; pointer-events: none;
+        z-index: 999; pointer-events: none;
         border-top: 24px solid; border-left: 24px solid transparent;
         filter: drop-shadow(-1px 1px 1px rgba(0,0,0,0.3));
     }
@@ -56,7 +56,6 @@ let settings = {
 };
 let isRunning = false;
 let styleEl: HTMLStyleElement | null = null;
-// 🔥 修复点：定义一个模块级变量代替 window._biliScanTimer
 let scanTimer: any = null; 
 
 // 缓存与队列
@@ -102,7 +101,9 @@ function render(element: HTMLElement, data: any) {
     const existingStatus = element.querySelector('.my-status-tag');
     if (existingStatus) existingStatus.remove();
     
+    // 判断逻辑：只要 fav 或 like 有效就渲染
     if (settings.enableStatus && data.status && (data.status.fav || data.status.like)) {
+        // 优先显示收藏，其次显示点赞
         const type = data.status.fav ? 'fav' : 'like';
         const tag = document.createElement('div');
         tag.className = `my-status-tag tag-${type}`;
@@ -170,7 +171,11 @@ function processQueue() {
         requests.push(new Promise(resolve => {
             chrome.runtime.sendMessage({ action: 'fetchVideoRelation', bvid }, res => {
                 if (res && res.success && res.data && res.data.code === 0) {
-                    resolve({ fav: res.data.data.favorite, like: res.data.data.like === 1 });
+                    // 🔥 核心修复：使用 !! 强制转换为 boolean，兼容 1 和 true
+                    resolve({ 
+                        fav: !!res.data.data.favorite, 
+                        like: !!res.data.data.like 
+                    });
                 } else {
                     resolve(null);
                 }
@@ -277,7 +282,6 @@ function start() {
     scanPage();
     
     const observer = new MutationObserver(() => {
-        // 🔥 修复点：使用局部变量 scanTimer，而不是 window._biliScanTimer
         if (scanTimer) clearTimeout(scanTimer);
         scanTimer = setTimeout(scanPage, 500);
     });
@@ -302,7 +306,6 @@ export const ThumbnailEnhancerModule: Module = {
             }
         });
 
-        // 监听设置变化实现【即时响应】
         chrome.storage.onChanged.addListener((changes) => {
             const keys = [STORAGE_KEYS.THUMB_STATUS, STORAGE_KEYS.THUMB_RES, STORAGE_KEYS.THUMB_PCOUNT, STORAGE_KEYS.THUMB_STYLE];
             if (keys.some(k => changes[k])) {
@@ -312,7 +315,7 @@ export const ThumbnailEnhancerModule: Module = {
                 
                 if (changes[STORAGE_KEYS.THUMB_STYLE]) {
                     settings.styleMode = changes[STORAGE_KEYS.THUMB_STYLE].newValue as string;
-                    updateStyleContent(); // 立即更新 CSS
+                    updateStyleContent();
                 }
 
                 if (!isRunning && (settings.enableStatus || settings.enableRes || settings.enablePCount)) {

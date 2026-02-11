@@ -22,7 +22,9 @@
 
 > **效果预览：**
 >
-> ![缩略图增强效果展示](此处替换为你的截图_推荐展示文字模式和角标模式的对比.png)
+> | 文字标签 | 三角角标 |推荐视频列表 |
+> | :---: | :---: | :---: |
+> | <img src="docs/images/thumbnail-enhancer1.png" width="100%" /> | <img src="docs/images/thumbnail-enhancer2.png" width="100%" /> |<img src="docs/images/thumbnail-enhancer-TJ.png" width="100%" /> |
 
 ### 2. 📥 封面预览与下载
 * **悬停预览**：在任意视频列表，鼠标指向封面即可在左侧浮现高清大图。
@@ -31,7 +33,9 @@
 
 > **效果预览：**
 >
-> ![封面预览与下载功能展示](此处替换为你的截图_展示悬停大图或下载按钮.png)
+> | 列表悬停预览 | 播放页下载按钮 |
+> | :---: | :---: |
+> | <img src="docs/images/cover-preview.png" width="100%" /> | <img src="docs/images/cover-download.png" width="100%" /> |
 
 ### 3. 📺 播放器增强
 * **视频旋转**：支持向左/向右 90° 旋转，拯救方向错误的手机投稿。
@@ -40,7 +44,7 @@
 
 > **效果预览：**
 >
-> ![播放器增强功能展示](此处替换为你的截图_展示旋转按钮和毫秒时间.png)
+> ![播放器增强功能展示](docs/images/player-tools.png)
 
 ### 4. 🌟 已关注UP主高亮
 在茫茫评论区或推荐流中，一眼认出“自己人”。
@@ -49,7 +53,7 @@
 
 > **效果预览：**
 >
-> ![关注高亮效果展示](此处替换为你的截图_展示评论区高亮的名字.png)
+> ![关注高亮效果展示](docs/images/highlight-user.png)
 
 ---
 
@@ -63,7 +67,7 @@
 
 > **面板预览：**
 >
-> ![设置面板截图](此处替换为你的截图_展示Popup界面的所有开关.png)
+> ![设置面板截图](docs/images/settings-panel.png)
 
 ---
 
