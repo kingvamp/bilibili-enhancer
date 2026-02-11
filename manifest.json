@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "B站播放器增强 (旋转/截图/毫秒时间)",
+  "version": "3.0",
+  "description": "整合了视频旋转、截图(Shift+S)、毫秒级时间显示功能。",
+  "icons": {
+    "32": "icons/faviconV2.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://www.bilibili.com/video/*",
+        "*://www.bilibili.com/bangumi/play/*",
+        "*://www.bilibili.com/list/*"
+      ],
+      "js": ["dist/content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
