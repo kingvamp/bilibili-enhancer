@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "B站增强",
   "version": "3.0",
-  "description": "整合了视频旋转、截图(Shift+S)、毫秒级时间显示功能。",
+  "description": "B站体验增强工具：集成视频旋转、快捷截图(Shift+S)、毫秒级时间显示，以及全局视频列表的封面大图预览功能。",
   "icons": {
     "16": "icons/faviconV2.png",
     "48": "icons/faviconV2.png",
