@@ -5,6 +5,7 @@ import { CoverPreviewModule } from './modules/coverPreview';
 import { HighlightFollowedModule } from './modules/highlightFollowed';
 import { CoverDownloadModule } from './modules/coverDownload';
 import { ThumbnailEnhancerModule } from './modules/thumbnailEnhancer';
+import { VideoDownloadModule } from './modules/downloadVideo';
 
 // === 第一部分：封面预览 (全局功能) ===
 // 它不依赖播放器 UI，直接启动。
@@ -18,6 +19,7 @@ ThumbnailEnhancerModule.init();
 //MARK B站顶部工具栏会刷新一次，需要等刷新完才注入
 setTimeout(() => {
     CoverDownloadModule.init();
+    VideoDownloadModule.init();
 }, 2000);
 
 // === 第二部分：播放器增强 (特定功能) ===

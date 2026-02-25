@@ -1,7 +1,6 @@
 import { Module } from '../types';
+import { DOM_IDS } from '../constants';
 
-// 按钮 ID 常量
-const IDS = { LEFT: 'bili-rot-l', RIGHT: 'bili-rot-r' };
 // 图标 SVG 路径配置
 const ICON_PATHS = {
     LEFT: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" />',
@@ -70,8 +69,8 @@ export const RotationModule: Module = {
     init: (container?: HTMLElement) => {
         if (!container) return;
         // 创建左右旋转按钮
-        const btnRight = createBtn(IDS.RIGHT, ICON_PATHS.RIGHT, '向右旋转', '12px', () => rotateVideo(90));
-        const btnLeft = createBtn(IDS.LEFT, ICON_PATHS.LEFT, '向左旋转', '4px', () => rotateVideo(-90));
+        const btnRight = createBtn(DOM_IDS.ROTATION_RIGHT_BTN, ICON_PATHS.RIGHT, '向右旋转', '12px', () => rotateVideo(90));
+        const btnLeft = createBtn(DOM_IDS.ROTATION_LEFT_BTN, ICON_PATHS.LEFT, '向左旋转', '4px', () => rotateVideo(-90));
         
         // 插入到控制栏最前面
         if (btnRight) container.insertBefore(btnRight, container.firstChild);

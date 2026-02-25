@@ -1,11 +1,8 @@
 // src/modules/coverDownload.ts
 import { Module } from '../types';
-import { COVER_SIZES, STORAGE_KEYS } from '../constants';
-// 复用已有的 Key，实现设置同步
-const STORAGE_KEY_COVER_SIZE = 'cover_preview_size';
+import { COVER_SIZES, STORAGE_KEYS, DOM_IDS } from '../constants';
+import { showToast } from '../utils/toast';
 
-const BUTTON_ID = 'bili-cover-download-btn-integrated';
-const PREVIEW_ID = 'bili-cover-preview-img';
 const COLORS = { DEFAULT: '#61666D', HOVER: '#00AEEC' };
 
 // 当前预览尺寸 Key (默认为 medium)
@@ -43,12 +40,11 @@ function sanitizeFileName(name: string): string {
 function downloadAction(container: HTMLElement) {
     const coverUrl = getCoverUrl();
     if (!coverUrl) {
-        alert('❌ 未找到封面信息');
+        showToast('❌ 未找到封面信息');
         return;
     }
 
     // UI 反馈
-    const originalText = container.innerHTML;
     const textSpan = container.querySelector('.bili-cover-text') as HTMLElement;
     if(textSpan) textSpan.innerText = '下载中...';
 
@@ -68,9 +64,11 @@ function downloadAction(container: HTMLElement) {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            showToast('✅ 封面已下载');
         } else {
             console.error('后台下载失败，尝试直接打开', response);
             window.open(coverUrl, '_blank');
+            showToast('⚠️ 下载失败，已在新标签页打开');
         }
 
         // 恢复 UI
@@ -86,10 +84,10 @@ function getCurrentWidthStyle(): string {
 }
 // === 注入按钮 ===
 function injectButton(toolbar: HTMLElement) {
-    if (document.getElementById(BUTTON_ID)) return;
+    if (document.getElementById(DOM_IDS.COVER_DOWNLOAD_BTN)) return;
 
     const container = document.createElement('div');
-    container.id = BUTTON_ID;
+    container.id = DOM_IDS.COVER_DOWNLOAD_BTN;
     container.style.cssText = `
         display: inline-flex; align-items: center; justify-content: center;
         position: relative; cursor: pointer; margin-left: 6px; margin-right: 0px;
@@ -100,7 +98,7 @@ function injectButton(toolbar: HTMLElement) {
 
    // 预览图元素
     const previewImg = document.createElement('img');
-    previewImg.id = PREVIEW_ID;
+    previewImg.id = DOM_IDS.COVER_PREVIEW_IMG;
     previewImg.style.cssText = `
         display: none; position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%);
         border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);

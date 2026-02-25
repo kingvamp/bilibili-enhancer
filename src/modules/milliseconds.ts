@@ -1,4 +1,5 @@
 import { Module } from '../types';
+import { DOM_IDS } from '../constants';
 
 const STORAGE_KEY_MS = 'enable_ms_display';
 
@@ -26,11 +27,11 @@ function start() {
     // 创建元素（如果不存在）
     if (!msEl) {
         msEl = document.createElement('span');
-        msEl.id = 'bili-ms-display';
+        msEl.id = DOM_IDS.MS_DISPLAY;
         msEl.style.cssText = 'color:#00A1D6; font-size:14px; margin-left:2px; font-weight:bold; width:34px; display:inline-block; text-align:left; font-family:Consolas, monospace;';
     }
     // 插入 DOM
-    if (!document.getElementById('bili-ms-display') && timeWrap.parentElement) {
+    if (!document.getElementById(DOM_IDS.MS_DISPLAY) && timeWrap.parentElement) {
         timeWrap.insertAdjacentElement('afterend', msEl);
     }
 

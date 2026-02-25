@@ -1,5 +1,5 @@
 import { Module } from '../types';
-import { COVER_SIZES, STORAGE_KEYS } from '../constants'; // 引入公共常量
+import { COVER_SIZES, STORAGE_KEYS, DOM_IDS } from '../constants'; // 引入公共常量
 
 const GAP = 15;
 
@@ -16,10 +16,10 @@ let isRunning = false;
 
 // === 辅助函数 ===
 function createTooltip() {
-    if (document.getElementById('bili-hover-preview')) return;
+    if (document.getElementById(DOM_IDS.HOVER_PREVIEW)) return;
 
     tooltip = document.createElement('div');
-    tooltip.id = 'bili-hover-preview';
+    tooltip.id = DOM_IDS.HOVER_PREVIEW;
     tooltip.style.cssText = `
         position: fixed; display: none; z-index: 2147483647;
         background: #fff; border: 1px solid #ddd;
@@ -92,7 +92,7 @@ const handleMouseOver = (e: MouseEvent) => {
     
     const target = e.target as HTMLElement;
     // 屏蔽区域
-    const isForbiddenZone = target.closest('.rec-list, .recommend-list, .video-page-card, .card-box, .bili-video-card');
+    const isForbiddenZone = target.closest('.rec-list, .recommend-list, .video-page-card, .card-box, .bili-video-card, .video-title-href');
     if (isForbiddenZone) return;
 
     let bvid: string | null = null;

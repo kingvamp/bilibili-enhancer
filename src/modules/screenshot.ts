@@ -1,5 +1,6 @@
 import { Module } from '../types';
 import { showToast } from '../utils/toast';
+import { DOM_IDS } from '../constants';
 
 // 快捷键配置：Shift + S
 const HOTKEY = { key: 'S', shift: true };
@@ -91,11 +92,11 @@ export const ScreenshotModule: Module = {
         if (!container) return;
         bindKey(); // 确保快捷键生效
 
-        if (document.getElementById('bili-screenshot-btn')) return;
+        if (document.getElementById(DOM_IDS.SCREENSHOT_BTN)) return;
         
         // 创建截图按钮
         const btn = document.createElement('div');
-        btn.id = 'bili-screenshot-btn';
+        btn.id = DOM_IDS.SCREENSHOT_BTN;
         btn.className = 'bpx-player-ctrl-btn bpx-player-ctrl-setting';
         btn.style.cssText = 'margin-right: 10px; cursor: pointer;';
         btn.innerHTML = CAMERA_ICON;
