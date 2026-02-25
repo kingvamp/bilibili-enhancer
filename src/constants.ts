@@ -18,7 +18,8 @@ export const STORAGE_KEYS = {
     THUMB_STATUS: 'enable_thumb_status',       // 开关：收藏/点赞状态
     THUMB_RES: 'enable_thumb_resolution',      // 开关：分辨率
     THUMB_PCOUNT: 'enable_thumb_pcount',       // 开关：分P数
-    THUMB_STYLE: 'thumb_status_style'          // 样式：'text' 或 'triangle'
+    THUMB_STYLE: 'thumb_status_style',         // 样式：'text' 或 'triangle'
+    HIDE_CHARGING: 'hide_charging_videos'      // 开关：屏蔽充电视频
 };
 
 // === 新增：DOM 元素 ID 常量 ===
