@@ -24,6 +24,9 @@ interface VideoState {
     p: number;
 }
 
+// 监听状态标记
+let isPolling = false;
+
 // --- 核心逻辑 ---
 function getCurrentState(): VideoState {
     const params = new URLSearchParams(window.location.search);
@@ -36,12 +39,65 @@ function getCurrentState(): VideoState {
     return { bvid, p: parseInt(p) };
 }
 
+// --- 自动收藏逻辑 ---
+async function handleDownloadFinished(bvid: string, fav_folder_id?: string) {
+    // 1. 检查登录状态
+    const csrf = document.cookie.match(/(?:^|; )bili_jct=([^;]*)/)?.[1];
+    if (!csrf) {
+        showToast('⚠️ 自动收藏失败: 请先登录B站账号');
+        return;
+    }
+    if (!fav_folder_id) {
+        showToast('✅ 视频下载完成');
+        return;
+    }
+
+    showToast('⬇️ 下载完成，正在自动收藏...');
+    
+    try {
+        // 1. 获取 AID (收藏API需要aid而不是bvid)
+        const aidRes = await fetch(`https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`, { credentials: 'include' });
+        const aidJson = await aidRes.json();
+        const aid = aidJson.data?.aid;
+        if (!aid) throw new Error('无法获取视频ID');
+
+        
+
+        // 3. 添加到收藏夹
+        const params = new URLSearchParams({
+            rid: aid.toString(),
+            type: '2',
+            add_media_ids: fav_folder_id as string,
+            csrf: csrf
+        });
+
+        const favRes = await fetch('https://api.bilibili.com/x/v3/fav/resource/deal', {
+            method: 'POST',
+            body: params,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            credentials: 'include'
+        });
+        const favJson = await favRes.json();
+
+        if (favJson.code === 0 || favJson.code === 11007) { // 11007: 资源已存在
+            showToast('✅ 已自动存入收藏夹');
+        } else {
+            throw new Error(favJson.message);
+        }
+    } catch (e: any) {
+        showToast(`⚠️ 自动收藏失败: ${e.message}`);
+    }
+}
+
 async function startDownload() {
     const state = getCurrentState();
     if (!state.bvid) {
         showToast('❌ 无法获取BV号，请检查视频页面URL');
         return;
     }
+
+    // 提前获取收藏夹设置，避免后续异步获取失败
+    const { fav_folder_id } = await chrome.storage.sync.get(['fav_folder_id']);
 
     try {
         // 构造指令
@@ -51,10 +107,49 @@ async function startDownload() {
         // 写入剪贴板
         await navigator.clipboard.writeText(specialCommand);
         showToast('✅ 指令已复制到剪贴板');
+
+        // 启动剪贴板监听 (模拟 clipboard-event 毫秒级响应)
+        startClipboardListener(state.bvid, fav_folder_id as string);
     } catch (err: any) {
         console.error('下载流程出错：', err);
         showToast(`❌ 操作出错: ${err.message || err.toString()}`);
     }
+}
+
+function startClipboardListener(bvid: string, fav_folder_id?: string) {
+    isPolling = true;
+    const startTime = Date.now();
+    // 设置 10 分钟超时防止无限轮询
+    const TIMEOUT = 600000;
+
+    const poll = async () => {
+        if (!isPolling) return;
+
+        if (Date.now() - startTime > TIMEOUT) {
+            isPolling = false;
+            return;
+        }
+
+        // 只有当页面有焦点时才尝试读取剪贴板，避免报错
+        if (document.hasFocus()) {
+            try {
+                const text = await navigator.clipboard.readText();
+                // 确保是当前视频的下载完成信号 (防止多开标签页冲突)
+                if (text.startsWith('Enhancer_Download_Finished||') && text.includes(bvid)) {
+                    isPolling = false;
+                    handleDownloadFinished(bvid, fav_folder_id);
+                    return;
+                }
+            } catch (e) {
+                // 忽略读取错误 (例如页面失去焦点时可能无权限)
+            }
+        }
+
+        // 200ms 间隔轮询，实现近乎实时的响应
+        setTimeout(poll, 200);
+    };
+
+    poll();
 }
 
 // --- 按钮注入 ---

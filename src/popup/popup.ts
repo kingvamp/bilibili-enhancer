@@ -32,6 +32,7 @@ const statusRadios = document.querySelectorAll('input[name="status-mode"]');
 // 社交增强
 const toggleHighlight = document.getElementById('toggle-highlight') as HTMLInputElement;
 const btnUpdate = document.getElementById('btn-force-update') as HTMLButtonElement;
+const inputFavId = document.getElementById('input-fav-id') as HTMLInputElement;
 
 
 // === 3. 初始化简单开关 ===
@@ -130,6 +131,17 @@ if (btnUpdate) {
         }, 2000);
     });
 }
+
+// === 7. 初始化收藏夹设置 ===
+if (inputFavId) {
+    chrome.storage.sync.get(['fav_folder_id'], (result) => {
+        inputFavId.value = (result['fav_folder_id'] as string) || '';
+    });
+    inputFavId.addEventListener('change', () => {
+        chrome.storage.sync.set({ 'fav_folder_id': inputFavId.value.trim() });
+    });
+}
+
 // === 7. 自动显示当前版本号 ===
 const versionEl = document.getElementById('app-version');
 if (versionEl) {
@@ -137,4 +149,12 @@ if (versionEl) {
     const manifest = chrome.runtime.getManifest();
     // 自动填充版本号 (例如: "v1.0.0")
     versionEl.innerText = `v${manifest.version}`;
+}
+
+// === 8. GitHub 链接跳转 ===
+const githubLink = document.getElementById('github-star');
+if (githubLink) {
+    githubLink.addEventListener('click', () => {
+        chrome.tabs.create({ url: 'https://github.com/kingvamp/bilibili-enhancer' });
+    });
 }
