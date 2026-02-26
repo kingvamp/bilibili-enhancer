@@ -57,8 +57,8 @@
 
 ### 5. 🚀 视频下载与自动化
 打通视频下载与收藏的闭环工作流。
-* **联动视频下载**：无缝对接 [Bilibili Downloader](https://github.com/kingvamp/bilibili-downloader) 扩展，支持快捷调用进行视频解析与下载。
-* **下载后自动收藏**：支持在设置面板自定义配置 **收藏夹 ID**。当视频下载完成后，插件会自动将其加入该指定收藏夹，实现全自动归档。
+* **联动视频下载**：无缝对接 [Bilibili Downloader](https://github.com/kingvamp/bilibili-downloader) 程序，支持快捷调用进行视频解析与下载。
+* **下载后自动收藏**：支持在设置面板自定义配置 **收藏夹ID**。当视频下载完成后，插件会自动将其加入该指定收藏夹，实现全自动归档。
 
 ---
 
