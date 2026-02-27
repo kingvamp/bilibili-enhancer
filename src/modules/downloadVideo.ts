@@ -198,7 +198,7 @@ export const VideoDownloadModule: Module = {
         };
 
         chrome.storage.sync.get(['enable_download_video'], (result) => {
-            isEnabled = (result['enable_download_video'] !== undefined ? result['enable_download_video'] : true) as boolean;
+            isEnabled = (result['enable_download_video'] !== undefined ? result['enable_download_video'] : false) as boolean;
             if (isEnabled) checkToolbar();
             else removeButton();
         });

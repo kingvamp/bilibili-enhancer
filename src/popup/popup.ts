@@ -42,7 +42,7 @@ setupToggle(toggleHighlight, STORAGE_KEYS.HIGHLIGHT);
 setupToggle(toggleThumbRes, STORAGE_KEYS.THUMB_RES);
 setupToggle(toggleThumbPCount, STORAGE_KEYS.THUMB_PCOUNT);
 setupToggle(toggleHideCharging, STORAGE_KEYS.HIDE_CHARGING);
-setupToggle(toggleDownloadVideo, 'enable_download_video');
+setupToggle(toggleDownloadVideo, 'enable_download_video', false);
 
 
 // === 4. 初始化封面尺寸选择 (Radio) ===
@@ -159,7 +159,7 @@ if (inputFavId) {
         const favContainer = inputFavId.closest('.setting-item') as HTMLElement;
         if (favContainer) {
             chrome.storage.sync.get(['enable_download_video'], (res) => {
-                const val = res['enable_download_video'] !== undefined ? res['enable_download_video'] : true;
+                const val = res['enable_download_video'] !== undefined ? res['enable_download_video'] : false;
                 favContainer.style.display = val ? 'flex' : 'none';
             });
             toggleDownloadVideo.addEventListener('change', () => {
