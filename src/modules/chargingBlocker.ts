@@ -16,8 +16,8 @@ const CACHE_KEY = 'Gemini_Bvid_Cache';
 const MAX_CONCURRENT = 4;
 
 const KEYWORDS = ["充电专属"];
-const CARD_SELECTORS = ['.bili-video-card', '.small-item', '.video-page-card', '.rank-item', '.feed-card', '.cube-list li', '.floor-card', '.recommend-card', '.video-page-card-small'];
-const WRAPPER_SELECTORS = ['.feed-card', '.bili-video-card__wrap', '.video-list-item', '.col_3', '.col_4', '.card-box', '.upload-video-card', '.items__item', '.floor-card', '.recommend-card', '.video-page-card-small'];
+const CARD_SELECTORS = ['.bili-video-card', '.small-item', '.video-page-card', '.rank-item', '.feed-card', '.cube-list li', '.floor-card', '.recommend-card', '.video-page-card-small', '.bili-dyn-card-video'];
+const WRAPPER_SELECTORS = ['.feed-card', '.bili-video-card__wrap', '.video-list-item', '.col_3', '.col_4', '.card-box', '.upload-video-card', '.items__item', '.floor-card', '.recommend-card', '.video-page-card-small', '.bili-dyn-list__item'];
 
 interface StorageCache {
   safe: string[];
