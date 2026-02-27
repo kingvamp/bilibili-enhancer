@@ -112,6 +112,86 @@ body {
 }
 
 /* === Tooltip (悬停提示) === */
+/* 1. 通用 Tooltip 逻辑 - 任何带有 data-tooltip 的元素都会显示 */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+/* 提示框主体 (::after) */
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-bottom: 10px;
+    /* 留出箭头空间 */
+
+    background-color: rgba(40, 44, 52, 0.95);
+    /* 深色背景，微透 */
+    color: #fff;
+    padding: 8px 12px;
+    /* 增加内边距 */
+    border-radius: 6px;
+    /* 圆角 */
+    font-size: 12px;
+    white-space: normal;
+    width: max-content;
+    max-width: 200px;
+    /* 稍微加宽 */
+    line-height: 1.5;
+    text-align: center;
+    z-index: 3000;
+
+    /* 美化阴影 */
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(2px);
+    /* 磨砂效果 */
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    /* 动画初始状态：向下偏移 */
+    transform: translateX(-50%) translateY(6px);
+    transition: opacity 0.25s cubic-bezier(0.25, 0.1, 0.25, 1),
+        transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1),
+        visibility 0.25s;
+}
+
+/* 小三角箭头 (::before) */
+[data-tooltip]::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+
+    border: 6px solid transparent;
+    border-top-color: rgba(40, 44, 52, 0.95);
+    /* 与背景同色 */
+    margin-bottom: 4px;
+    /* 精确衔接 Body (10px) 与 Arrow Tip (4px+6px=10px) */
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    /* 动画同步 */
+    transform: translateX(-50%) translateY(6px);
+    transition: opacity 0.25s cubic-bezier(0.25, 0.1, 0.25, 1),
+        transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1),
+        visibility 0.25s;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:hover::before {
+    opacity: 1;
+    visibility: visible;
+    /* 动画结束状态：回到原位 */
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 2. 问号图标特定样式 */
 .tooltip-icon {
     display: inline-flex;
     justify-content: center;
@@ -123,66 +203,13 @@ body {
     border-radius: 50%;
     font-size: 10px;
     margin-left: 6px;
-    cursor: help;
     font-weight: bold;
     font-family: monospace;
-    position: relative;
 }
 
 .tooltip-icon:hover {
     background-color: var(--primary-color);
     color: white;
-}
-
-/* 提示框主体 */
-.tooltip-icon::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 140%;
-    /* 位于图标上方 */
-    left: 50%;
-    transform: translateX(-50%);
-
-    background-color: rgba(0, 0, 0, 0.85);
-    color: #fff;
-    padding: 6px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    white-space: normal;
-    width: max-content;
-    max-width: 180px;
-    /* 限制最大宽度 */
-    line-height: 1.4;
-    text-align: center;
-    z-index: 3000;
-
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    pointer-events: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* 小三角箭头 */
-.tooltip-icon::before {
-    content: "";
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: rgba(0, 0, 0, 0.85);
-
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    pointer-events: none;
-}
-
-.tooltip-icon:hover::after,
-.tooltip-icon:hover::before {
-    opacity: 1;
-    visibility: visible;
 }
 
 /* === Switch 开关 === */

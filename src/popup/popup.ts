@@ -25,6 +25,7 @@ const coverRadios = document.querySelectorAll('input[name="cover-size"]');
 const toggleThumbRes = document.getElementById('toggle-thumb-res') as HTMLInputElement;
 const toggleThumbPCount = document.getElementById('toggle-thumb-pcount') as HTMLInputElement;
 const toggleHideCharging = document.getElementById('toggle-hide-charging') as HTMLInputElement;
+const toggleDownloadVideo = document.getElementById('toggle-download-video') as HTMLInputElement;
 
 // 缩略图增强 - 状态与样式 (Radio 组)
 const statusRadios = document.querySelectorAll('input[name="status-mode"]');
@@ -41,6 +42,7 @@ setupToggle(toggleHighlight, STORAGE_KEYS.HIGHLIGHT);
 setupToggle(toggleThumbRes, STORAGE_KEYS.THUMB_RES);
 setupToggle(toggleThumbPCount, STORAGE_KEYS.THUMB_PCOUNT);
 setupToggle(toggleHideCharging, STORAGE_KEYS.HIDE_CHARGING);
+setupToggle(toggleDownloadVideo, 'enable_download_video');
 
 
 // === 4. 初始化封面尺寸选择 (Radio) ===
@@ -108,6 +110,17 @@ if (statusRadios.length > 0) {
 }
 // === 6. 初始化强制同步按钮 ===
 if (btnUpdate) {
+    // 联动逻辑：如果关闭高亮，隐藏同步按钮
+    if (toggleHighlight) {
+        chrome.storage.sync.get([STORAGE_KEYS.HIGHLIGHT], (res) => {
+            const val = res[STORAGE_KEYS.HIGHLIGHT] !== undefined ? res[STORAGE_KEYS.HIGHLIGHT] : true;
+            btnUpdate.style.display = val ? 'flex' : 'none';
+        });
+        toggleHighlight.addEventListener('change', () => {
+            btnUpdate.style.display = toggleHighlight.checked ? 'flex' : 'none';
+        });
+    }
+
     btnUpdate.addEventListener('click', () => {
         const originalHTML = btnUpdate.innerHTML;
         btnUpdate.innerText = "请求已发送...";
@@ -140,6 +153,20 @@ if (inputFavId) {
     inputFavId.addEventListener('change', () => {
         chrome.storage.sync.set({ 'fav_folder_id': inputFavId.value.trim() });
     });
+
+    // 联动逻辑：如果关闭下载，隐藏收藏夹设置
+    if (toggleDownloadVideo) {
+        const favContainer = inputFavId.closest('.setting-item') as HTMLElement;
+        if (favContainer) {
+            chrome.storage.sync.get(['enable_download_video'], (res) => {
+                const val = res['enable_download_video'] !== undefined ? res['enable_download_video'] : true;
+                favContainer.style.display = val ? 'flex' : 'none';
+            });
+            toggleDownloadVideo.addEventListener('change', () => {
+                favContainer.style.display = toggleDownloadVideo.checked ? 'flex' : 'none';
+            });
+        }
+    }
 }
 
 // === 7. 自动显示当前版本号 ===

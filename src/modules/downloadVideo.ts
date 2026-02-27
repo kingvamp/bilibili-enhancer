@@ -26,6 +26,12 @@ interface VideoState {
 
 // 监听状态标记
 let isPolling = false;
+let isEnabled = false;
+
+function removeButton() {
+    const btn = document.getElementById(DOM_IDS.VIDEO_DOWNLOAD_BTN);
+    if (btn) btn.remove();
+}
 
 // --- 核心逻辑 ---
 function getCurrentState(): VideoState {
@@ -154,6 +160,8 @@ function startClipboardListener(bvid: string, fav_folder_id?: string) {
 
 // --- 按钮注入 ---
 function injectButton(toolbar: HTMLElement) {
+    if (!isEnabled) return;
+
     let container = document.getElementById(DOM_IDS.VIDEO_DOWNLOAD_BTN);
 
     if (!container) {
@@ -188,8 +196,22 @@ export const VideoDownloadModule: Module = {
             const toolbar = document.querySelector('.video-toolbar-left');
             if (toolbar && toolbar instanceof HTMLElement) injectButton(toolbar);
         };
+
+        chrome.storage.sync.get(['enable_download_video'], (result) => {
+            isEnabled = (result['enable_download_video'] !== undefined ? result['enable_download_video'] : true) as boolean;
+            if (isEnabled) checkToolbar();
+            else removeButton();
+        });
+
+        chrome.storage.onChanged.addListener((changes) => {
+            if (changes['enable_download_video']) {
+                isEnabled = changes['enable_download_video'].newValue as boolean;
+                if (isEnabled) checkToolbar();
+                else removeButton();
+            }
+        });
+
         const observer = new MutationObserver(checkToolbar);
         observer.observe(document.body, { childList: true, subtree: true });
-        checkToolbar();
     }
 };
