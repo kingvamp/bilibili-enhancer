@@ -279,7 +279,12 @@ function start() {
     if (isRunning) return;
     isRunning = true;
     injectStyle();
-    scanPage();
+    
+    if (location.pathname.startsWith('/video/')) {
+        setTimeout(scanPage, 1500);
+    } else {
+        scanPage();
+    }
     
     const observer = new MutationObserver(() => {
         if (scanTimer) clearTimeout(scanTimer);
