@@ -16,8 +16,8 @@ const CACHE_KEY = 'Gemini_Bvid_Cache';
 const MAX_CONCURRENT = 4;
 
 const KEYWORDS = ["充电专属"];
-const CARD_SELECTORS = ['.bili-video-card', '.small-item', '.video-page-card', '.rank-item', '.feed-card', '.cube-list li'];
-const WRAPPER_SELECTORS = ['.feed-card', '.bili-video-card__wrap', '.video-list-item', '.col_3', '.col_4', '.card-box', '.upload-video-card'];
+const CARD_SELECTORS = ['.bili-video-card', '.small-item', '.video-page-card', '.rank-item', '.feed-card', '.cube-list li', '.floor-card', '.recommend-card', '.video-page-card-small'];
+const WRAPPER_SELECTORS = ['.feed-card', '.bili-video-card__wrap', '.video-list-item', '.col_3', '.col_4', '.card-box', '.upload-video-card', '.items__item', '.floor-card', '.recommend-card', '.video-page-card-small'];
 
 interface StorageCache {
   safe: string[];
@@ -121,28 +121,47 @@ function getWrapper(card: HTMLElement): HTMLElement {
 function hideItem(item: QueueItem): void {
   item.card.dataset.hiddenByGemini = 'true';
 
-  if (currentMode === 'hide') {
-    item.wrapper.style.display = 'none';
-  } else if (currentMode === 'mask') {
-    // 确保父容器相对定位，以便遮罩绝对定位
-    if (getComputedStyle(item.wrapper).position === 'static') {
-      item.wrapper.style.position = 'relative';
+  const applyVisuals = () => {
+    // Check if still marked (in case stop() was called)
+    if (item.card.dataset.hiddenByGemini !== 'true') return;
+
+    if (currentMode === 'hide') {
+      item.wrapper.style.setProperty('display', 'none', 'important');
+    } else if (currentMode === 'mask') {
+      // 确保父容器相对定位，以便遮罩绝对定位
+      if (getComputedStyle(item.wrapper).position === 'static') {
+        item.wrapper.style.position = 'relative';
+      }
+      
+      let mask = item.wrapper.querySelector('.gemini-charging-mask');
+      if (!mask) {
+        mask = document.createElement('div');
+        mask.className = 'gemini-charging-mask';
+        mask.innerHTML = `
+          <div style="display:flex; flex-direction:column; align-items:center;">
+              <span style="font-size:20px; margin-bottom:4px;">⚡</span>
+              <span>充电专属</span>
+          </div>
+        `;
+        item.wrapper.appendChild(mask);
+      }
+      // 确保在遮罩模式下元素是显示的
+      item.wrapper.style.removeProperty('display');
     }
-    
-    let mask = item.wrapper.querySelector('.gemini-charging-mask');
-    if (!mask) {
-      mask = document.createElement('div');
-      mask.className = 'gemini-charging-mask';
-      mask.innerHTML = `
-        <div style="display:flex; flex-direction:column; align-items:center;">
-            <span style="font-size:20px; margin-bottom:4px;">⚡</span>
-            <span>充电专属</span>
-        </div>
-      `;
-      item.wrapper.appendChild(mask);
-    }
-    // 确保在遮罩模式下元素是显示的
-    item.wrapper.style.display = '';
+  };
+
+  // Delay for recommendation list in video page
+  const isVideoPage = location.pathname.startsWith('/video/');
+  const isRec = item.wrapper.classList.contains('video-page-card') || 
+                item.wrapper.classList.contains('video-page-card-small') ||
+                item.wrapper.classList.contains('recommend-card') ||
+                item.wrapper.closest('.rec-list') || 
+                item.wrapper.closest('.recommend-list');
+
+  if (isVideoPage && isRec && currentMode === 'mask') {
+    setTimeout(applyVisuals, 500);
+  } else {
+    applyVisuals();
   }
 }
 
@@ -257,7 +276,7 @@ function stop(): void {
   document.querySelectorAll('[data-hidden-by-gemini="true"]').forEach(el => {
     const element = el as HTMLElement;
     const wrapper = getWrapper(element);
-    wrapper.style.display = '';
+    wrapper.style.removeProperty('display');
     delete element.dataset.hiddenByGemini;
 
     // Remove mask
