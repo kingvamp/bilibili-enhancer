@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "B站增强",
-  "version": "1.0.0",
-  "description": "B站全能助手：集成视频缩略图增强(显示收藏/点赞/分辨率)、封面预览下载、视频旋转/截图/毫秒时间、以及已关注UP主高亮功能。",
+  "version": "1.0.1",
+  "description": "B站全能助手：集成视频缩略图增强(显示收藏/点赞/分辨率/屏蔽充电视频)、封面预览下载、视频旋转/截图/毫秒时间、已关注UP主高亮功能。",
   "icons": {
     "16": "icons/faviconV2.png",
     "48": "icons/faviconV2.png",
