@@ -24,11 +24,13 @@ const coverRadios = document.querySelectorAll('input[name="cover-size"]');
 // 缩略图增强 - 开关
 const toggleThumbRes = document.getElementById('toggle-thumb-res') as HTMLInputElement;
 const toggleThumbPCount = document.getElementById('toggle-thumb-pcount') as HTMLInputElement;
-const toggleHideCharging = document.getElementById('toggle-hide-charging') as HTMLInputElement;
 const toggleDownloadVideo = document.getElementById('toggle-download-video') as HTMLInputElement;
 
 // 缩略图增强 - 状态与样式 (Radio 组)
 const statusRadios = document.querySelectorAll('input[name="status-mode"]');
+
+// 充电视频处理 (Radio 组)
+const chargingRadios = document.querySelectorAll('input[name="charging-mode"]');
 
 // 社交增强
 const toggleHighlight = document.getElementById('toggle-highlight') as HTMLInputElement;
@@ -41,7 +43,6 @@ setupToggle(toggleMs, STORAGE_KEYS.MS_DISPLAY);
 setupToggle(toggleHighlight, STORAGE_KEYS.HIGHLIGHT);
 setupToggle(toggleThumbRes, STORAGE_KEYS.THUMB_RES);
 setupToggle(toggleThumbPCount, STORAGE_KEYS.THUMB_PCOUNT);
-setupToggle(toggleHideCharging, STORAGE_KEYS.HIDE_CHARGING);
 setupToggle(toggleDownloadVideo, 'enable_download_video', false);
 
 
@@ -108,6 +109,32 @@ if (statusRadios.length > 0) {
         });
     });
 }
+
+// === 5.1 初始化充电视频处理 (Radio) ===
+if (chargingRadios.length > 0) {
+    chrome.storage.sync.get([STORAGE_KEYS.HIDE_CHARGING], (result) => {
+        let val = result[STORAGE_KEYS.HIDE_CHARGING];
+        // 兼容旧版 boolean 配置: true -> 'hide', false -> 'off'
+        if (typeof val === 'boolean') {
+            val = val ? 'hide' : 'off';
+        }
+        // 默认值为 'hide'
+        if (!val) val = 'hide';
+
+        chargingRadios.forEach((radio) => {
+            const r = radio as HTMLInputElement;
+            if (r.value === val) r.checked = true;
+        });
+    });
+
+    chargingRadios.forEach((radio) => {
+        radio.addEventListener('change', (e) => {
+            const target = e.target as HTMLInputElement;
+            chrome.storage.sync.set({ [STORAGE_KEYS.HIDE_CHARGING]: target.value });
+        });
+    });
+}
+
 // === 6. 初始化强制同步按钮 ===
 if (btnUpdate) {
     // 联动逻辑：如果关闭高亮，隐藏同步按钮

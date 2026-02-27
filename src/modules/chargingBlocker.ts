@@ -44,14 +44,27 @@ interface BiliApiResponse {
   };
 }
 
+// === CSS for Mask Mode ===
+const MASK_CSS = `
+.gemini-charging-mask {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.85); z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(2px); border-radius: 6px;
+    color: #fb7299; font-size: 13px; font-weight: bold;
+    pointer-events: auto; cursor: not-allowed;
+}
+`;
+
 // === State ===
-let isEnabled = false;
+let currentMode = 'off'; // 'off' | 'mask' | 'hide'
 let safeSet = new Set<string>();
 let chargingSet = new Set<string>();
 const queue: QueueItem[] = [];
 let activeRequests = 0;
 let scanTimeout: number | undefined;
 let observer: MutationObserver | null = null;
+let styleEl: HTMLStyleElement | null = null;
 
 // === Helper Functions ===
 
@@ -80,6 +93,14 @@ function saveCache(): void {
   }
 }
 
+function injectStyle() {
+  if (document.getElementById('gemini-charging-style')) return;
+  styleEl = document.createElement('style');
+  styleEl.id = 'gemini-charging-style';
+  styleEl.textContent = MASK_CSS;
+  document.head.appendChild(styleEl);
+}
+
 function getBvid(card: HTMLElement): string | null {
   let bvid = card.dataset.targetBvid || card.getAttribute('data-target-bvid');
   if (!bvid) {
@@ -98,8 +119,31 @@ function getWrapper(card: HTMLElement): HTMLElement {
 }
 
 function hideItem(item: QueueItem): void {
-  item.wrapper.style.display = 'none';
   item.card.dataset.hiddenByGemini = 'true';
+
+  if (currentMode === 'hide') {
+    item.wrapper.style.display = 'none';
+  } else if (currentMode === 'mask') {
+    // 确保父容器相对定位，以便遮罩绝对定位
+    if (getComputedStyle(item.wrapper).position === 'static') {
+      item.wrapper.style.position = 'relative';
+    }
+    
+    let mask = item.wrapper.querySelector('.gemini-charging-mask');
+    if (!mask) {
+      mask = document.createElement('div');
+      mask.className = 'gemini-charging-mask';
+      mask.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center;">
+            <span style="font-size:20px; margin-bottom:4px;">⚡</span>
+            <span>充电专属</span>
+        </div>
+      `;
+      item.wrapper.appendChild(mask);
+    }
+    // 确保在遮罩模式下元素是显示的
+    item.wrapper.style.display = '';
+  }
 }
 
 function markSafe(item: QueueItem): void {
@@ -154,7 +198,7 @@ function processQueue(): void {
 }
 
 function scan(): void {
-  if (!isEnabled) return;
+  if (currentMode === 'off') return;
   const selectorString = CARD_SELECTORS.join(', ');
   const cards = document.querySelectorAll<HTMLElement>(selectorString);
 
@@ -192,6 +236,7 @@ function debouncedScan(): void {
 
 function start(): void {
   if (observer) return;
+  injectStyle();
   loadCache();
   scan();
   observer = new MutationObserver((mutations) => {
@@ -214,6 +259,10 @@ function stop(): void {
     const wrapper = getWrapper(element);
     wrapper.style.display = '';
     delete element.dataset.hiddenByGemini;
+
+    // Remove mask
+    const mask = wrapper.querySelector('.gemini-charging-mask');
+    if (mask) mask.remove();
   });
 }
 
@@ -221,18 +270,27 @@ export const ChargingBlockerModule: Module = {
   init: () => {
     // 1. Load setting
     chrome.storage.sync.get([STORAGE_KEYS.HIDE_CHARGING], (result) => {
-      isEnabled = (result[STORAGE_KEYS.HIDE_CHARGING] ?? true) as boolean;
-      if (isEnabled) start();
+      let val = result[STORAGE_KEYS.HIDE_CHARGING];
+      // Migration for old boolean value
+      if (typeof val === 'boolean') val = val ? 'hide' : 'off';
+      // Default to 'hide'
+      currentMode = (val || 'hide') as string;
+
+      if (currentMode !== 'off') start();
     });
 
     // 2. Listen for changes
     chrome.storage.onChanged.addListener((changes) => {
       if (changes[STORAGE_KEYS.HIDE_CHARGING]) {
-        isEnabled = changes[STORAGE_KEYS.HIDE_CHARGING].newValue as boolean;
-        if (isEnabled) {
+        let newVal = changes[STORAGE_KEYS.HIDE_CHARGING].newValue;
+        if (typeof newVal === 'boolean') newVal = newVal ? 'hide' : 'off';
+        
+        currentMode = newVal as string;
+
+        // Restart to apply new mode (e.g. switch from hide to mask)
+        stop();
+        if (currentMode !== 'off') {
           start();
-        } else {
-          stop();
         }
       }
     });

@@ -97,12 +97,24 @@
                 </label>
             </div>
 
-            <div class="setting-item">
-                <span>屏蔽充电专属视频</span>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-hide-charging">
-                    <span class="slider"></span>
-                </label>
+            <div class="setting-item column-layout">
+                <div class="label-box">
+                    <span>充电专属视频处理</span>
+                </div>
+                <div class="segmented-control">
+                    <label>
+                        <input type="radio" name="charging-mode" value="off">
+                        <span class="seg-item">关闭</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="charging-mode" value="mask">
+                        <span class="seg-item">遮罩</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="charging-mode" value="hide">
+                        <span class="seg-item">隐藏</span>
+                    </label>
+                </div>
             </div>
         </div>
 
