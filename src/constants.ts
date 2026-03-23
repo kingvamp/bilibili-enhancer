@@ -19,7 +19,13 @@ export const STORAGE_KEYS = {
     THUMB_RES: 'enable_thumb_resolution',      // 开关：分辨率
     THUMB_PCOUNT: 'enable_thumb_pcount',       // 开关：分P数
     THUMB_STYLE: 'thumb_status_style',         // 样式：'text' 或 'triangle'
-    HIDE_CHARGING: 'hide_charging_videos'      // 开关：屏蔽充电视频
+    HIDE_CHARGING: 'hide_charging_videos',      // 开关：屏蔽充电视频
+    
+    // === 新增：时长筛选相关 ===
+    DURATION_FILTER_ENABLE: 'enable_duration_filter',
+    DURATION_FILTER_MIN: 'duration_filter_min',
+    DURATION_FILTER_MAX: 'duration_filter_max',
+    DURATION_FILTER_MODE: 'duration_filter_mode' // 'hide' | 'dim'
 };
 
 // === 新增：DOM 元素 ID 常量 ===

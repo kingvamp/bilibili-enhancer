@@ -351,6 +351,37 @@ input:checked+.slider:before {
     font-size: 14px;
 }
 
+.input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.duration-input {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center;
+    background: #fff;
+    transition: all 0.2s;
+    outline: none;
+    color: var(--text-main);
+    box-sizing: border-box;
+    display: block; /* Ensure it's not inline */
+}
+
+.duration-input:hover {
+    border-color: #ccd0d3;
+}
+
+.duration-input:focus {
+    border-color: var(--primary-color);
+}
+
 /* === 页脚 === */
 .footer {
     text-align: center;

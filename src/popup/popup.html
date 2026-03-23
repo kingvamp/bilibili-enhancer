@@ -119,7 +119,49 @@
         </div>
 
         <div class="section-group">
-            <div class="group-title">下载设置</div>
+            <div class="group-title">视频时长筛选</div>
+
+            <div class="setting-item">
+                <div class="label-box">
+                    <span>启用时长筛选</span>
+                    <span class="tooltip-icon" data-tooltip="根据视频时长过滤首页推荐、搜索结果等位置的视频卡片">?</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-duration-filter">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-item column-layout">
+                <div class="label-box">
+                    <span>时长限制 (Min - Max)</span>
+                    <span class="tooltip-icon" data-tooltip="格式如 05:00 或 300 (秒)。Max 为 0 表示不限制最大时长">?</span>
+                </div>
+                <div class="input-row">
+                    <input type="text" id="input-duration-min" placeholder="最小 (05:00)" class="duration-input">
+                    <span style="margin: 0 4px; color: #9499a0;">-</span>
+                    <input type="text" id="input-duration-max" placeholder="最大 (无限制)" class="duration-input">
+                </div>
+            </div>
+
+            <div class="setting-item column-layout">
+                <div class="label-box">
+                    <span>处理方式</span>
+                </div>
+                <div class="segmented-control">
+                    <label>
+                        <input type="radio" name="duration-mode" value="hide">
+                        <span class="seg-item">隐藏</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="duration-mode" value="dim">
+                        <span class="seg-item">淡出</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-group">
 
             <div class="setting-item">
                 <div class="label-box">

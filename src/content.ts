@@ -7,7 +7,7 @@ import { CoverDownloadModule } from './modules/coverDownload';
 import { ThumbnailEnhancerModule } from './modules/thumbnailEnhancer';
 import { VideoDownloadModule } from './modules/downloadVideo';
 import { ChargingBlockerModule } from './modules/chargingBlocker';
-
+import { DurationFilterModule } from './modules/durationFilter';
 
 // === 第一部分：封面预览 (全局功能) ===
 // 它不依赖播放器 UI，直接启动。
@@ -16,6 +16,7 @@ CoverPreviewModule.init();
 HighlightFollowedModule.init();
 ThumbnailEnhancerModule.init();
 ChargingBlockerModule.init();
+DurationFilterModule.init();
 // === 视频页专用功能 ===
 // 封面下载模块依赖 DOM 里的 Toolbar，可以独立初始化，也可以放在 Core 里
 // 建议独立初始化，因为它不依赖播放器内核，只依赖网页结构
