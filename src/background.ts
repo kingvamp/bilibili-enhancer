@@ -5,10 +5,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // 这里的 view 接口包含了：分辨率(dimension)、分P数(videos)、封面(pic)
     if (request.action === 'fetchVideoInfo' || request.action === 'fetchCover') {
         const url = `https://api.bilibili.com/x/web-interface/view?bvid=${request.bvid}`;
-        fetch(url)
+        fetch(url, {
+            headers: {
+                'Referer': 'https://www.bilibili.com/'
+            }
+        })
             .then(res => res.json())
-            .then(data => sendResponse({ success: true, data: data }))
-            .catch(err => sendResponse({ success: false, error: err.toString() }));
+            .then(data => {
+                console.log('[Background] fetchVideoInfo for', request.bvid, 'Response:', data);
+                sendResponse({ success: true, data: data });
+            })
+            .catch(err => {
+                console.error('[Background] fetchVideoInfo for', request.bvid, 'Error:', err);
+                sendResponse({ success: false, error: err.toString() });
+            });
         return true; 
     }
 
@@ -80,4 +90,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             .catch(err => sendResponse({ success: false, error: err.toString() }));
         return true;
     }
+
+    // === 新增：一键收藏相关已被转移至 content.ts 直接处理 ===
+    // (因为 Service Worker 的 Origin 和 Referer 无法彻底欺骗 B 站的 WAF)
+    
 });

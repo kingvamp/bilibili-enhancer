@@ -26,7 +26,11 @@ export const STORAGE_KEYS = {
     DURATION_FILTER_ENABLE: 'enable_duration_filter',
     DURATION_FILTER_MIN: 'duration_filter_min',
     DURATION_FILTER_MAX: 'duration_filter_max',
-    DURATION_FILTER_MODE: 'duration_filter_mode' // 'hide' | 'dim'
+    DURATION_FILTER_MODE: 'duration_filter_mode', // 'hide' | 'dim'
+
+    // === 新增：一键收藏相关 ===
+    ONE_CLICK_FAVORITE: 'enable_one_click_favorite', // 开关：一键收藏
+    DEFAULT_FAV_FOLDER_ID: 'default_fav_folder_id'   // 缓存：默认收藏夹 ID
 };
 
 // === 新增：DOM 元素 ID 常量 ===

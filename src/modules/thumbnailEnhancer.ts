@@ -3,8 +3,8 @@ import { STORAGE_KEYS } from '../constants';
 
 // === CSS 样式定义 ===
 const CSS_COMMON = `
-    /* 强制父元素相对定位 */
-    .b-link-cover, .bili-res-parent { position: relative !important; overflow: visible !important; }
+    /* 强制父元素相对定位 (仅对增强过的元素生效) */
+    .bili-res-badge-parent { position: relative !important; overflow: visible !important; }
 
     /* 分辨率徽章 */
     .bili-res-badge {
@@ -275,16 +275,17 @@ function scanPage() {
         const anchor = link as HTMLAnchorElement;
         if (anchor.dataset.biliEnhancedProcessed) return;
 
-        if (anchor.closest('.bili-header, .mini-header, .user-card, .v-popover-content')) return;
+        // 排除标题、头像等可能包含链接但不适合放角标的地方
+        if (anchor.closest('.bili-header, .mini-header, .user-card, .v-popover-content, h1, h2, h3, h4, h5, h6, .title, .info > .tit')) return;
 
-        const hasImg = anchor.querySelector('img') || anchor.querySelector('picture') || anchor.classList.contains('cover');
+        const hasImg = anchor.querySelector('img') || anchor.querySelector('picture') || anchor.classList.contains('cover') || anchor.classList.contains('b-img');
         if (!hasImg) return;
 
         const bvid = extractBvid(anchor.href);
         if (bvid) {
             anchor.dataset.biliEnhancedProcessed = "true";
             anchor.dataset.targetBvid = bvid;
-            anchor.classList.add('bili-res-parent'); 
+            anchor.classList.add('bili-res-badge-parent'); 
             
             // 性能优化：如果是已下载视频，立即进行初次渲染显示角标
             if (settings.enableDownloaded && downloadHistory.has(bvid)) {
