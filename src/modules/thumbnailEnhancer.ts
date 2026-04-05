@@ -23,6 +23,25 @@ const CSS_COMMON = `
         border-radius: 3px; font-size: 10px; z-index: 998; pointer-events: none;
         border: 1px solid rgba(255,255,255,0.1); line-height: 1.4;
     }
+
+    /* 播放页标题已下载标识 */
+    .bili-downloaded-title-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 8px;
+        font-size: 12px;
+        color: #10b981;
+        padding: 0 4px;
+        border: 1px solid #10b981;
+        border-radius: 4px;
+        vertical-align: middle;
+        font-weight: normal;
+        height: 18px;
+        line-height: 1;
+        position: relative;
+        top: -1px;
+    }
 `;
 
 const CSS_TEXT_MODE = `
@@ -61,6 +80,7 @@ let isRunning = false;
 let downloadHistory = new Set<string>();
 let styleEl: HTMLStyleElement | null = null;
 let scanTimer: any = null; 
+let lastHref = location.href;
 
 // 缓存与队列
 const globalCache = new Map<string, any>();
@@ -309,12 +329,56 @@ function updateDownloadHistory() {
         if (res && res.success && Array.isArray(res.data)) {
             downloadHistory = new Set(res.data);
             refreshAllElements();
+            checkVideoPageTitle();
         } else if (res && res.cachedData) {
             // 如果请求失败但有缓存数据，使用缓存数据
             downloadHistory = new Set(res.cachedData);
             refreshAllElements();
+            checkVideoPageTitle();
         }
     });
+}
+
+// === 播放页标题增强 ===
+function checkVideoPageTitle() {
+    if (!settings.enableDownloaded) return;
+    
+    // 支持 /video/ 和 /list/ (稍后观看等)
+    const isVideoPage = location.pathname.startsWith('/video/') || location.pathname.startsWith('/list/');
+    if (!isVideoPage) return;
+    
+    // 增加对 URL 参数 bvid 的支持
+    const bvid = extractBvid(location.href);
+    if (!bvid) return;
+
+    const titleEl = document.querySelector('.video-title') as HTMLElement || document.querySelector('.tit') as HTMLElement;
+    if (!titleEl) return;
+
+    // 先清除旧的（支持列表切换刷新）
+    const oldBadge = titleEl.querySelector('.bili-downloaded-title-badge');
+    if (oldBadge) {
+        if (oldBadge.getAttribute('data-bvid') === bvid) return; // 没变就不动
+        oldBadge.remove();
+    }
+
+    if (downloadHistory.has(bvid)) {
+        // 样式优化：确保标题容器是 flex 布局且允许换行，防止角标被生硬折行
+        if (titleEl.tagName === 'H1' || titleEl.classList.contains('video-title')) {
+            titleEl.style.display = 'flex';
+            titleEl.style.flexWrap = 'wrap';
+            titleEl.style.alignItems = 'center';
+        }
+
+        const badge = document.createElement('span');
+        badge.className = 'bili-downloaded-title-badge';
+        badge.setAttribute('data-bvid', bvid);
+        badge.innerText = '已下载';
+        // 强制不换行，且保持在文字流中
+        badge.style.flexShrink = '0';
+        badge.style.whiteSpace = 'nowrap';
+        
+        titleEl.appendChild(badge);
+    }
 }
 
 // === 模块控制 ===
@@ -332,16 +396,43 @@ function start() {
     });
     
     if (location.pathname.startsWith('/video/')) {
-        setTimeout(scanPage, 1500);
+        setTimeout(() => {
+            scanPage();
+            checkVideoPageTitle();
+        }, 1500);
     } else {
         scanPage();
     }
     
     const observer = new MutationObserver(() => {
+        if (location.href !== lastHref) {
+            lastHref = location.href;
+            checkVideoPageTitle();
+        }
         if (scanTimer) clearTimeout(scanTimer);
-        scanTimer = setTimeout(scanPage, 500);
+        scanTimer = setTimeout(() => {
+            scanPage();
+            checkVideoPageTitle();
+        }, 500);
     });
     observer.observe(document.body, { childList: true, subtree: true });
+
+    // 专门监听浏览器标签页标题变化（B站切换视频必改标题）
+    const titleTag = document.querySelector('title');
+    if (titleTag) {
+        const titleTagObserver = new MutationObserver(() => {
+            checkVideoPageTitle();
+        });
+        titleTagObserver.observe(titleTag, { childList: true });
+    }
+
+    // 兜底轮询 URL 变化
+    setInterval(() => {
+        if (location.href !== lastHref) {
+            lastHref = location.href;
+            checkVideoPageTitle();
+        }
+    }, 1000);
 }
 
 export const ThumbnailEnhancerModule: Module = {
