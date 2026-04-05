@@ -133,7 +133,13 @@ function render(element: HTMLElement, data: any) {
     if (settings.enableDownloaded && bvid && downloadHistory.has(bvid)) {
         type = 'downloaded';
     } else if (settings.enableStatus && data.status) {
-        if (data.status.fav) type = 'fav';
+        // 识别收藏夹页面，避免在已知收藏夹内冗余显示“已收藏”或者“已点赞”样式
+        const isFavPage = location.href.includes('medialist') || 
+                          location.href.includes('favlist') ||
+                          !!document.querySelector('.fav-detail') ||
+                          !!document.querySelector('.fav-info');
+
+        if (data.status.fav && !isFavPage) type = 'fav';
         else if (data.status.like) type = 'like';
     }
 

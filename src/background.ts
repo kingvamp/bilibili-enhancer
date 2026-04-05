@@ -83,8 +83,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // 2. 新增：获取视频互动状态 (点赞/收藏)
     if (request.action === 'fetchVideoRelation') {
         const url = `https://api.bilibili.com/x/web-interface/archive/relation?bvid=${request.bvid}`;
-        // 关键：必须带 credentials 才能查到"我"的状态
-        fetch(url, { credentials: 'include' })
+        fetch(url, { 
+            credentials: 'include',
+            headers: {
+                'Referer': 'https://www.bilibili.com/',
+                'Origin': 'https://www.bilibili.com'
+            }
+        })
             .then(res => res.json())
             .then(data => sendResponse({ success: true, data: data }))
             .catch(err => sendResponse({ success: false, error: err.toString() }));

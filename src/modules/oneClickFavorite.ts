@@ -1,5 +1,5 @@
 import { Module } from '../types';
-import { STORAGE_KEYS } from '../constants';
+import { STORAGE_KEYS, DOM_IDS } from '../constants';
 import { bvToAv } from '../bilibili';
 
 // === CSS 样式定义 ===
@@ -127,6 +127,18 @@ const Utils = {
         } else {
             throw new Error(data.message || `API错误(${code})`);
         }
+    },
+
+    checkIsFavorited: async (bvid: string): Promise<boolean> => {
+        return new Promise((resolve) => {
+            chrome.runtime.sendMessage({ action: 'fetchVideoRelation', bvid }, res => {
+                if (res && res.success && res.data && res.data.code === 0) {
+                    resolve(!!res.data.data.fav);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
     }
 };
 
@@ -134,6 +146,14 @@ const Utils = {
 const ThumbHoverPart = {
     process: () => {
         if (!isEnabled) return;
+
+        // 识别收藏夹页面，避免在已知收藏夹内冗余显示
+        const isFavPage = location.href.includes('medialist') || 
+                          location.href.includes('favlist') ||
+                          !!document.querySelector('.fav-detail') ||
+                          !!document.querySelector('.fav-info');
+        if (isFavPage) return;
+
         const links = document.querySelectorAll('a[href*="/video/BV"]');
         links.forEach(link => {
             const anchor = link as HTMLAnchorElement;
@@ -165,6 +185,19 @@ const ThumbHoverPart = {
             btn.innerText = '❤+';
             btn.title = '一键收藏到默认收藏夹';
             
+            // 鼠标悬停时检查状态
+            let hasCheckedStatus = false;
+            anchor.addEventListener('mouseenter', async () => {
+                if (hasCheckedStatus) return;
+                hasCheckedStatus = true;
+                const isFav = await Utils.checkIsFavorited(bvid);
+                if (isFav) {
+                    btn.innerText = '✔';
+                    btn.style.backgroundColor = '#4caf50';
+                    btn.style.pointerEvents = 'none';
+                }
+            });
+
             btn.onclick = async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -180,6 +213,7 @@ const ThumbHoverPart = {
                     await Utils.doFavorite(aid);
                     btn.innerText = "✔";
                     btn.style.backgroundColor = "#4caf50";
+                    btn.style.pointerEvents = 'none';
                     setTimeout(() => btn.remove(), 1500);
                 } catch (err) {
                     console.error('[OneClickFav]', err);
@@ -218,27 +252,44 @@ const VideoPagePart = {
             btn.style.pointerEvents = 'auto';
             btn.dataset.loading = "false";
             VideoPagePart.lastBvid = currentBvid;
+            
+            // 重新检查新视频的收藏状态
+            const isFav = await Utils.checkIsFavorited(currentBvid);
+            if (isFav) {
+                btn.innerHTML = ICONS.check + '<span>已收藏</span>';
+                btn.classList.add('gm-fav-success');
+                btn.style.pointerEvents = 'none';
+            }
         }
 
         if (btn) return;
 
-        // 寻找工具栏 (兼容不同版本UI)
+        // 优先寻找 B 站标准工具栏
         const toolbar = document.querySelector('.video-toolbar-left') || 
-                        document.querySelector('.toolbar-left') || 
-                        document.querySelector('.video-info-ops');
+                        document.querySelector('.toolbar-left');
         if (!toolbar) return;
+
+        // 检查当前视频是否已收藏
+        const isFavOnLoad = await Utils.checkIsFavorited(currentBvid);
 
         btn = document.createElement('div');
         btn.id = btnId;
         btn.className = 'gm-toolbar-fav-btn';
-        btn.innerHTML = ICONS.heart + '<span>一键收藏</span>';
+        
+        if (isFavOnLoad) {
+            btn.innerHTML = ICONS.check + '<span>已收藏</span>';
+            btn.classList.add('gm-fav-success');
+            btn.style.pointerEvents = 'none';
+        } else {
+            btn.innerHTML = ICONS.heart + '<span>一键收藏</span>';
+        }
+        
         btn.title = '一键收藏到默认收藏夹';
         VideoPagePart.lastBvid = currentBvid;
 
         btn.onclick = async () => {
             if (btn!.dataset.loading === "true") return;
             
-            // 每次点击时重新获取最新的 BVID (防止点击时的 URL 和初始化时的不一致)
             const clickBvidMatch = location.href.match(/(BV\w{10})/);
             const clickBvid = clickBvidMatch ? clickBvidMatch[1] : null;
             if (!clickBvid) return;
@@ -266,8 +317,18 @@ const VideoPagePart = {
             }
         };
 
-        toolbar.appendChild(btn);
+        // 为了不干扰其他下载按钮，如果发现已有下载按钮，插入到他们后面
+        const lastBtn = toolbar.querySelector('#' + DOM_IDS.VIDEO_DOWNLOAD_BTN) || 
+                        toolbar.querySelector('#' + DOM_IDS.COVER_DOWNLOAD_BTN) ||
+                        toolbar.lastElementChild;
+        
+        if (lastBtn && lastBtn.parentElement === toolbar) {
+             lastBtn.insertAdjacentElement('afterend', btn);
+        } else {
+             toolbar.appendChild(btn);
+        }
     },
+
 
     initLoop: () => {
         setInterval(() => {
