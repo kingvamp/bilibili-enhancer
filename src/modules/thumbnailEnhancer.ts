@@ -247,25 +247,31 @@ function processQueue() {
 
     // 请求 2: 视频信息
     if ((settings.enableRes || settings.enablePCount) && (!cached || cached.resolution === undefined)) {
-        requests.push(new Promise(resolve => {
-            try {
-                chrome.runtime.sendMessage({ action: 'fetchVideoInfo', bvid }, res => {
-                    if (res && res.success && res.data && res.data.code === 0) {
-                        const d = res.data.data;
-                        let resolution = null;
-                        if (d.dimension) {
-                            resolution = getResolutionLabel(d.dimension.width, d.dimension.height);
+        // 性能优化：如果视频已下载，跳过视频信息查询（除非需要分辨率/分P数）
+        // 这里暂时选择跳过，以减轻 B 站 API 压力
+        if (settings.enableDownloaded && downloadHistory.has(bvid.toUpperCase())) {
+            requests.push(Promise.resolve(null));
+        } else {
+            requests.push(new Promise(resolve => {
+                try {
+                    chrome.runtime.sendMessage({ action: 'fetchVideoInfo', bvid }, res => {
+                        if (res && res.success && res.data && res.data.code === 0) {
+                            const d = res.data.data;
+                            let resolution = null;
+                            if (d.dimension) {
+                                resolution = getResolutionLabel(d.dimension.width, d.dimension.height);
+                            }
+                            resolve({ resolution, pageCount: d.videos || 1 });
+                        } else {
+                            resolve(null);
                         }
-                        resolve({ resolution, pageCount: d.videos || 1 });
-                    } else {
-                        resolve(null);
-                    }
-                });
-            } catch (e) {
-                console.warn('[ThumbnailEnhancer] Context invalidated during fetchVideoInfo');
-                resolve(null);
-            }
-        }));
+                    });
+                } catch (e) {
+                    console.warn('[ThumbnailEnhancer] Context invalidated during fetchVideoInfo');
+                    resolve(null);
+                }
+            }));
+        }
     } else {
         requests.push(Promise.resolve(cached ? { resolution: cached.resolution, pageCount: cached.pageCount } : null));
     }

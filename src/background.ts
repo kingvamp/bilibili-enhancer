@@ -6,11 +6,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'fetchVideoInfo' || request.action === 'fetchCover') {
         const url = `https://api.bilibili.com/x/web-interface/view?bvid=${request.bvid}`;
         fetch(url, {
+            credentials: 'include',
             headers: {
                 'Referer': 'https://www.bilibili.com/'
             }
         })
-            .then(res => res.json())
+            .then(async res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                }
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error(`Invalid JSON (Starts with: ${text.slice(0, 20)}...)`);
+                }
+            })
             .then(data => {
                 console.log('[Background] fetchVideoInfo for', request.bvid, 'Response:', data);
                 sendResponse({ success: true, data: data });
