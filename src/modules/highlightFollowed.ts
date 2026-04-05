@@ -117,6 +117,9 @@ async function syncFollowList(force = false): Promise<void> {
 
     try {
         while (keepFetching) {
+            // 安全检查
+            if (!chrome.runtime?.id) break;
+
             // 请求 Background 代理
             const response = await chrome.runtime.sendMessage({ 
                 action: 'fetchFollowList', 
@@ -176,7 +179,14 @@ function start() {
     syncFollowList(false);
 
     // 监听 DOM 变化持续高亮
-    const observer = new MutationObserver(() => highlight());
+    const observer = new MutationObserver(() => {
+        if (!chrome.runtime?.id) {
+            observer.disconnect();
+            isRunning = false;
+            return;
+        }
+        highlight();
+    });
     observer.observe(document.body, { childList: true, subtree: true });
     
     // 保存 observer 引用以便 stop 时断开 (这里简化处理，暂未保存，仅用 isRunning 控制逻辑)

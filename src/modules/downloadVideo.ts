@@ -119,7 +119,13 @@ export const VideoDownloadModule: Module = {
             }
         });
 
-        const observer = new MutationObserver(checkToolbar);
+        const observer = new MutationObserver(() => {
+            if (!chrome.runtime?.id) {
+                observer.disconnect();
+                return;
+            }
+            checkToolbar();
+        });
         observer.observe(document.body, { childList: true, subtree: true });
     }
 };

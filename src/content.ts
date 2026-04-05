@@ -24,6 +24,7 @@ OneClickFavoriteModule.init();
 // 建议独立初始化，因为它不依赖播放器内核，只依赖网页结构
 //MARK B站顶部工具栏会刷新一次，需要等刷新完才注入
 setTimeout(() => {
+    if (!chrome.runtime?.id) return;
     CoverDownloadModule.init();
     VideoDownloadModule.init();
 }, 2000);
@@ -49,6 +50,12 @@ const Core = (() => {
         }
     }
     // 监听 DOM 变化，因为 B 站是单页应用(SPA)，播放器可能是后加载出来的
-    const observer = new MutationObserver(check);
+    const observer = new MutationObserver(() => {
+        if (!chrome.runtime?.id) {
+            observer.disconnect();
+            return;
+        }
+        check();
+    });
     observer.observe(document.body, { childList: true, subtree: true });
 })();

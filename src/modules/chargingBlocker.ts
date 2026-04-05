@@ -218,6 +218,11 @@ function processQueue(): void {
 
 function scan(): void {
   if (currentMode === 'off') return;
+  // 安全检查
+  if (!chrome.runtime?.id) {
+    stop();
+    return;
+  }
   const selectorString = CARD_SELECTORS.join(', ');
   const cards = document.querySelectorAll<HTMLElement>(selectorString);
 
@@ -259,6 +264,10 @@ function start(): void {
   loadCache();
   scan();
   observer = new MutationObserver((mutations) => {
+    if (!chrome.runtime?.id) {
+        stop();
+        return;
+    }
     const shouldCheck = mutations.some(m => m.addedNodes.length > 0);
     if (shouldCheck) debouncedScan();
   });

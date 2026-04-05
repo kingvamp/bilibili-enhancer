@@ -121,6 +121,11 @@ function applyFilter(card: HTMLElement, duration: number): void {
 
 function scan(): void {
     if (!settings.enabled) return;
+    // 安全检查
+    if (!chrome.runtime?.id) {
+        stop();
+        return;
+    }
 
     const cards = document.querySelectorAll<HTMLElement>(CARD_SELECTORS.join(', '));
     cards.forEach(card => {
@@ -163,6 +168,10 @@ function start(): void {
     if (observer) return;
     setTimeout(scan, 500);
     observer = new MutationObserver((mutations) => {
+        if (!chrome.runtime?.id) {
+            stop();
+            return;
+        }
         if (mutations.some(m => m.addedNodes.length > 0)) debouncedScan();
     });
     observer.observe(document.body, { childList: true, subtree: true });

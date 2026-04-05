@@ -54,26 +54,34 @@ function downloadAction(container: HTMLElement) {
     const bvId = getBvId();
     const fileName = sanitizeFileName(`${titleText} [${bvId}]`) + '.jpg';
 
-    // 发送消息给后台下载
-    chrome.runtime.sendMessage({ action: 'fetchImageBlob', url: coverUrl }, (response) => {
-        if (response && response.success && response.data) {
-            // response.data 是 base64 字符串
-            const link = document.createElement('a');
-            link.href = response.data; 
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast('✅ 封面已下载');
-        } else {
-            console.error('后台下载失败，尝试直接打开', response);
-            window.open(coverUrl, '_blank');
-            showToast('⚠️ 下载失败，已在新标签页打开');
-        }
+    // 安全检查
+    if (!chrome.runtime?.id) return;
 
-        // 恢复 UI
+    // 发送消息给后台下载
+    try {
+        chrome.runtime.sendMessage({ action: 'fetchImageBlob', url: coverUrl }, (response) => {
+            if (response && response.success && response.data) {
+                // response.data 是 base64 字符串
+                const link = document.createElement('a');
+                link.href = response.data; 
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast('✅ 封面已下载');
+            } else {
+                console.error('后台下载失败，尝试直接打开', response);
+                window.open(coverUrl, '_blank');
+                showToast('⚠️ 下载失败，已在新标签页打开');
+            }
+
+            // 恢复 UI
+            if(textSpan) textSpan.innerText = '封面';
+        });
+    } catch (e) {
+        console.warn('[CoverDownload] Context invalidated');
         if(textSpan) textSpan.innerText = '封面';
-    });
+    }
 }
 // === 辅助函数：获取当前宽度的 CSS 字符串 ===
 function getCurrentWidthStyle(): string {
@@ -161,7 +169,13 @@ export const CoverDownloadModule: Module = {
         };
 
         // 启动一个针对 toolbar 的检测
-        const observer = new MutationObserver(checkToolbar);
+        const observer = new MutationObserver(() => {
+            if (!chrome.runtime?.id) {
+                observer.disconnect();
+                return;
+            }
+            checkToolbar();
+        });
         observer.observe(document.body, { childList: true, subtree: true });
         checkToolbar(); // 立即检测一次
     }

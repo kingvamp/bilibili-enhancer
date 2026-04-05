@@ -130,14 +130,20 @@ const Utils = {
     },
 
     checkIsFavorited: async (bvid: string): Promise<boolean> => {
+        if (!chrome.runtime?.id) return false;
         return new Promise((resolve) => {
-            chrome.runtime.sendMessage({ action: 'fetchVideoRelation', bvid }, res => {
-                if (res && res.success && res.data && res.data.code === 0) {
-                    resolve(!!res.data.data.fav);
-                } else {
-                    resolve(false);
-                }
-            });
+            try {
+                chrome.runtime.sendMessage({ action: 'fetchVideoRelation', bvid }, res => {
+                    if (res && res.success && res.data && res.data.code === 0) {
+                        resolve(!!res.data.data.fav);
+                    } else {
+                        resolve(false);
+                    }
+                });
+            } catch (e) {
+                console.warn('[OneClickFav] Context invalidated');
+                resolve(false);
+            }
         });
     }
 };
@@ -331,7 +337,11 @@ const VideoPagePart = {
 
 
     initLoop: () => {
-        setInterval(() => {
+        const timer = setInterval(() => {
+            if (!chrome.runtime?.id) {
+                clearInterval(timer);
+                return;
+            }
             const isVideoPage = location.pathname.startsWith('/video/') || 
                                location.pathname.startsWith('/list/') || 
                                location.href.includes('watchlater');
@@ -358,7 +368,14 @@ function start() {
 
     // 1. 初始化列表监听
     ThumbHoverPart.process();
-    const observer = new MutationObserver(() => ThumbHoverPart.process());
+    const observer = new MutationObserver(() => {
+        if (!chrome.runtime?.id) {
+            observer.disconnect();
+            isRunning = false;
+            return;
+        }
+        ThumbHoverPart.process();
+    });
     observer.observe(document.body, { childList: true, subtree: true });
 
     // 2. 初始化视频页监听

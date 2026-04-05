@@ -210,6 +210,12 @@ function processQueue() {
     // 准备 API 请求
     const requests: Promise<any>[] = [];
 
+    // 安全检查：如果扩展上下文已失效，停止处理
+    if (!chrome.runtime?.id) {
+        isProcessing = false;
+        return;
+    }
+
     // 请求 1: 互动状态
     if (settings.enableStatus && (!cached || cached.status === undefined)) {
         // 性能优化：如果视频已下载，跳过互动状态查询（已下载优先级最高）
@@ -217,17 +223,22 @@ function processQueue() {
             requests.push(Promise.resolve(null));
         } else {
             requests.push(new Promise(resolve => {
-                chrome.runtime.sendMessage({ action: 'fetchVideoRelation', bvid }, res => {
-                    if (res && res.success && res.data && res.data.code === 0) {
-                        // 🔥 核心修复：使用 !! 强制转换为 boolean，兼容 1 和 true
-                        resolve({ 
-                            fav: !!res.data.data.favorite, 
-                            like: !!res.data.data.like 
-                        });
-                    } else {
-                        resolve(null);
-                    }
-                });
+                try {
+                    chrome.runtime.sendMessage({ action: 'fetchVideoRelation', bvid }, res => {
+                        if (res && res.success && res.data && res.data.code === 0) {
+                            // 🔥 核心修复：使用 !! 强制转换为 boolean，兼容 1 和 true
+                            resolve({ 
+                                fav: !!res.data.data.favorite, 
+                                like: !!res.data.data.like 
+                            });
+                        } else {
+                            resolve(null);
+                        }
+                    });
+                } catch (e) {
+                    console.warn('[ThumbnailEnhancer] Context invalidated during fetchVideoRelation');
+                    resolve(null);
+                }
             }));
         }
     } else {
@@ -237,18 +248,23 @@ function processQueue() {
     // 请求 2: 视频信息
     if ((settings.enableRes || settings.enablePCount) && (!cached || cached.resolution === undefined)) {
         requests.push(new Promise(resolve => {
-            chrome.runtime.sendMessage({ action: 'fetchVideoInfo', bvid }, res => {
-                if (res && res.success && res.data && res.data.code === 0) {
-                    const d = res.data.data;
-                    let resolution = null;
-                    if (d.dimension) {
-                        resolution = getResolutionLabel(d.dimension.width, d.dimension.height);
+            try {
+                chrome.runtime.sendMessage({ action: 'fetchVideoInfo', bvid }, res => {
+                    if (res && res.success && res.data && res.data.code === 0) {
+                        const d = res.data.data;
+                        let resolution = null;
+                        if (d.dimension) {
+                            resolution = getResolutionLabel(d.dimension.width, d.dimension.height);
+                        }
+                        resolve({ resolution, pageCount: d.videos || 1 });
+                    } else {
+                        resolve(null);
                     }
-                    resolve({ resolution, pageCount: d.videos || 1 });
-                } else {
-                    resolve(null);
-                }
-            });
+                });
+            } catch (e) {
+                console.warn('[ThumbnailEnhancer] Context invalidated during fetchVideoInfo');
+                resolve(null);
+            }
         }));
     } else {
         requests.push(Promise.resolve(cached ? { resolution: cached.resolution, pageCount: cached.pageCount } : null));
@@ -332,18 +348,23 @@ function refreshAllElements() {
 
 // === 下载历史获取 ===
 function updateDownloadHistory() {
-    chrome.runtime.sendMessage({ action: 'fetchDownloadHistory' }, res => {
-        if (res && res.success && Array.isArray(res.data)) {
-            downloadHistory = new Set(res.data.map((id: string) => id.toUpperCase()));
-            refreshAllElements();
-            checkVideoPageTitle();
-        } else if (res && res.cachedData) {
-            // 如果请求失败但有缓存数据，使用缓存数据
-            downloadHistory = new Set(res.cachedData.map((id: string) => id.toUpperCase()));
-            refreshAllElements();
-            checkVideoPageTitle();
-        }
-    });
+    if (!chrome.runtime?.id) return;
+    try {
+        chrome.runtime.sendMessage({ action: 'fetchDownloadHistory' }, res => {
+            if (res && res.success && Array.isArray(res.data)) {
+                downloadHistory = new Set(res.data.map((id: string) => id.toUpperCase()));
+                refreshAllElements();
+                checkVideoPageTitle();
+            } else if (res && res.cachedData) {
+                // 如果请求失败但有缓存数据，使用缓存数据
+                downloadHistory = new Set(res.cachedData.map((id: string) => id.toUpperCase()));
+                refreshAllElements();
+                checkVideoPageTitle();
+            }
+        });
+    } catch (e) {
+        console.warn('[ThumbnailEnhancer] Context invalidated during fetchDownloadHistory');
+    }
 }
 
 // === 播放页标题增强 ===
@@ -412,6 +433,11 @@ function start() {
     }
     
     const observer = new MutationObserver(() => {
+        if (!chrome.runtime?.id) {
+            observer.disconnect();
+            isRunning = false;
+            return;
+        }
         if (location.href !== lastHref) {
             lastHref = location.href;
             checkVideoPageTitle();
