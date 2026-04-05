@@ -61,8 +61,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             .then(res => {
                 if (res.success && Array.isArray(res.data)) {
                     // 持久化存储到 local，以便离线使用
-                    chrome.storage.local.set({ download_history: res.data });
-                    sendResponse({ success: true, data: res.data });
+                    const normalizedData = res.data.map((id: string) => id.toUpperCase());
+                    chrome.storage.local.set({ download_history: normalizedData });
+                    sendResponse({ success: true, data: normalizedData });
                 } else {
                     sendResponse({ success: false, error: 'Invalid data format' });
                 }

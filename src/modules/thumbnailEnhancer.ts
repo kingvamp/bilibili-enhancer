@@ -113,7 +113,7 @@ function getResolutionLabel(width: number, height: number) {
 }
 
 function extractBvid(url: string | null): string | null {
-    const match = url && url.match(/(BV[a-zA-Z0-9]{10})/);
+    const match = url && url.match(/(BV[a-zA-Z0-9]{10})/i);
     return match ? match[1] : null;
 }
 
@@ -130,7 +130,7 @@ function render(element: HTMLElement, data: any) {
     // 优先级：已下载 > 收藏 > 点赞
     let type: 'downloaded' | 'fav' | 'like' | null = null;
     
-    if (settings.enableDownloaded && bvid && downloadHistory.has(bvid)) {
+    if (settings.enableDownloaded && bvid && downloadHistory.has(bvid.toUpperCase())) {
         type = 'downloaded';
     } else if (settings.enableStatus && data.status) {
         // 识别收藏夹页面，避免在已知收藏夹内冗余显示“已收藏”或者“已点赞”样式
@@ -213,7 +213,7 @@ function processQueue() {
     // 请求 1: 互动状态
     if (settings.enableStatus && (!cached || cached.status === undefined)) {
         // 性能优化：如果视频已下载，跳过互动状态查询（已下载优先级最高）
-        if (settings.enableDownloaded && downloadHistory.has(bvid)) {
+        if (settings.enableDownloaded && downloadHistory.has(bvid.toUpperCase())) {
             requests.push(Promise.resolve(null));
         } else {
             requests.push(new Promise(resolve => {
@@ -294,7 +294,7 @@ function scanPage() {
             anchor.classList.add('bili-res-badge-parent'); 
             
             // 性能优化：如果是已下载视频，立即进行初次渲染显示角标
-            if (settings.enableDownloaded && downloadHistory.has(bvid)) {
+            if (settings.enableDownloaded && downloadHistory.has(bvid.toUpperCase())) {
                 render(anchor, globalCache.get(bvid) || {});
             }
             
@@ -334,12 +334,12 @@ function refreshAllElements() {
 function updateDownloadHistory() {
     chrome.runtime.sendMessage({ action: 'fetchDownloadHistory' }, res => {
         if (res && res.success && Array.isArray(res.data)) {
-            downloadHistory = new Set(res.data);
+            downloadHistory = new Set(res.data.map((id: string) => id.toUpperCase()));
             refreshAllElements();
             checkVideoPageTitle();
         } else if (res && res.cachedData) {
             // 如果请求失败但有缓存数据，使用缓存数据
-            downloadHistory = new Set(res.cachedData);
+            downloadHistory = new Set(res.cachedData.map((id: string) => id.toUpperCase()));
             refreshAllElements();
             checkVideoPageTitle();
         }
@@ -368,7 +368,7 @@ function checkVideoPageTitle() {
         oldBadge.remove();
     }
 
-    if (downloadHistory.has(bvid)) {
+    if (downloadHistory.has(bvid.toUpperCase())) {
         // 样式优化：确保标题容器是 flex 布局且允许换行，防止角标被生硬折行
         if (titleEl.tagName === 'H1' || titleEl.classList.contains('video-title')) {
             titleEl.style.display = 'flex';
@@ -397,7 +397,7 @@ function start() {
     // 加载缓存的下载历史并启动实时拉取
     chrome.storage.local.get(['download_history'], (cache) => {
         if (cache && Array.isArray(cache.download_history)) {
-            downloadHistory = new Set(cache.download_history as string[]);
+            downloadHistory = new Set((cache.download_history as string[]).map(id => id.toUpperCase()));
         }
         updateDownloadHistory();
     });

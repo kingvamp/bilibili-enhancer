@@ -38,7 +38,7 @@ function getCurrentState(): VideoState {
     const params = new URLSearchParams(window.location.search);
     let bvid = params.get('bvid');
     if (!bvid) {
-        const match = window.location.pathname.match(/(BV\w+)/);
+        const match = window.location.pathname.match(/(BV\w+)/i);
         if (match) bvid = match[1];
     }
     let p = params.get('p') || '1';
