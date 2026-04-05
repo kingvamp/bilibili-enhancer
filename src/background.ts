@@ -43,6 +43,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true; // 异步等待
     }
 
+    // 2. 新增：从本地服务获取下载历史
+    if (request.action === 'fetchDownloadHistory') {
+        const url = 'http://127.0.0.1:6889/history';
+        fetch(url)
+            .then(res => res.json())
+            .then(res => {
+                if (res.success && Array.isArray(res.data)) {
+                    // 持久化存储到 local，以便离线使用
+                    chrome.storage.local.set({ download_history: res.data });
+                    sendResponse({ success: true, data: res.data });
+                } else {
+                    sendResponse({ success: false, error: 'Invalid data format' });
+                }
+            })
+            .catch(err => {
+                // 如果请求失败（下载器没开），尝试返回缓存
+                chrome.storage.local.get(['download_history'], (cache) => {
+                    sendResponse({ 
+                        success: false, 
+                        error: err.toString(), 
+                        cachedData: cache.download_history || [] 
+                    });
+                });
+            });
+        return true;
+    }
+
     // 2. 新增：获取视频互动状态 (点赞/收藏)
     if (request.action === 'fetchVideoRelation') {
         const url = `https://api.bilibili.com/x/web-interface/archive/relation?bvid=${request.bvid}`;

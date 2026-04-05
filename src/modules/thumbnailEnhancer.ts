@@ -34,6 +34,7 @@ const CSS_TEXT_MODE = `
     }
     .tag-fav { background-color: #ff6699; }
     .tag-like { background-color: #00AEEC; }
+    .tag-downloaded { background-color: #10b981; }
 `;
 
 const CSS_TRIANGLE_MODE = `
@@ -45,6 +46,7 @@ const CSS_TRIANGLE_MODE = `
     }
     .tag-fav { border-top-color: #fb7299; }
     .tag-like { border-top-color: #00AEEC; }
+    .tag-downloaded { border-top-color: #10b981; }
 `;
 
 // === 状态管理 ===
@@ -52,9 +54,11 @@ let settings = {
     enableStatus: true,
     enableRes: true,
     enablePCount: true,
+    enableDownloaded: true,
     styleMode: 'text' // 'text' | 'triangle'
 };
 let isRunning = false;
+let downloadHistory = new Set<string>();
 let styleEl: HTMLStyleElement | null = null;
 let scanTimer: any = null; 
 
@@ -97,18 +101,32 @@ function extractBvid(url: string | null): string | null {
 function render(element: HTMLElement, data: any) {
     if (!data) return;
 
-    // 1. 状态 (收藏/点赞)
+    // 1. 状态 (已下载 / 收藏 / 点赞)
     const existingStatus = element.querySelector('.my-status-tag');
     if (existingStatus) existingStatus.remove();
     
-    // 判断逻辑：只要 fav 或 like 有效就渲染
-    if (settings.enableStatus && data.status && (data.status.fav || data.status.like)) {
-        // 优先显示收藏，其次显示点赞
-        const type = data.status.fav ? 'fav' : 'like';
+    const bvid = element.dataset.targetBvid;
+    
+    // 优先级：已下载 > 收藏 > 点赞
+    let type: 'downloaded' | 'fav' | 'like' | null = null;
+    
+    if (settings.enableDownloaded && bvid && downloadHistory.has(bvid)) {
+        type = 'downloaded';
+    } else if (settings.enableStatus && data.status) {
+        if (data.status.fav) type = 'fav';
+        else if (data.status.like) type = 'like';
+    }
+
+    if (type) {
         const tag = document.createElement('div');
         tag.className = `my-status-tag tag-${type}`;
         if (settings.styleMode === 'text') {
-            tag.innerText = type === 'fav' ? '已收藏' : '已点赞';
+            const labelsMap = {
+                downloaded: '已下载',
+                fav: '已收藏',
+                like: '已点赞'
+            };
+            tag.innerText = labelsMap[type];
         }
         element.appendChild(tag);
     }
@@ -168,19 +186,24 @@ function processQueue() {
 
     // 请求 1: 互动状态
     if (settings.enableStatus && (!cached || cached.status === undefined)) {
-        requests.push(new Promise(resolve => {
-            chrome.runtime.sendMessage({ action: 'fetchVideoRelation', bvid }, res => {
-                if (res && res.success && res.data && res.data.code === 0) {
-                    // 🔥 核心修复：使用 !! 强制转换为 boolean，兼容 1 和 true
-                    resolve({ 
-                        fav: !!res.data.data.favorite, 
-                        like: !!res.data.data.like 
-                    });
-                } else {
-                    resolve(null);
-                }
-            });
-        }));
+        // 性能优化：如果视频已下载，跳过互动状态查询（已下载优先级最高）
+        if (settings.enableDownloaded && downloadHistory.has(bvid)) {
+            requests.push(Promise.resolve(null));
+        } else {
+            requests.push(new Promise(resolve => {
+                chrome.runtime.sendMessage({ action: 'fetchVideoRelation', bvid }, res => {
+                    if (res && res.success && res.data && res.data.code === 0) {
+                        // 🔥 核心修复：使用 !! 强制转换为 boolean，兼容 1 和 true
+                        resolve({ 
+                            fav: !!res.data.data.favorite, 
+                            like: !!res.data.data.like 
+                        });
+                    } else {
+                        resolve(null);
+                    }
+                });
+            }));
+        }
     } else {
         requests.push(Promise.resolve(cached ? cached.status : null));
     }
@@ -242,6 +265,12 @@ function scanPage() {
             anchor.dataset.biliEnhancedProcessed = "true";
             anchor.dataset.targetBvid = bvid;
             anchor.classList.add('bili-res-parent'); 
+            
+            // 性能优化：如果是已下载视频，立即进行初次渲染显示角标
+            if (settings.enableDownloaded && downloadHistory.has(bvid)) {
+                render(anchor, globalCache.get(bvid) || {});
+            }
+            
             viewportObserver.observe(anchor);
         }
     });
@@ -274,11 +303,33 @@ function refreshAllElements() {
     processQueue();
 }
 
+// === 下载历史获取 ===
+function updateDownloadHistory() {
+    chrome.runtime.sendMessage({ action: 'fetchDownloadHistory' }, res => {
+        if (res && res.success && Array.isArray(res.data)) {
+            downloadHistory = new Set(res.data);
+            refreshAllElements();
+        } else if (res && res.cachedData) {
+            // 如果请求失败但有缓存数据，使用缓存数据
+            downloadHistory = new Set(res.cachedData);
+            refreshAllElements();
+        }
+    });
+}
+
 // === 模块控制 ===
 function start() {
     if (isRunning) return;
     isRunning = true;
     injectStyle();
+
+    // 加载缓存的下载历史并启动实时拉取
+    chrome.storage.local.get(['download_history'], (cache) => {
+        if (cache && Array.isArray(cache.download_history)) {
+            downloadHistory = new Set(cache.download_history as string[]);
+        }
+        updateDownloadHistory();
+    });
     
     if (location.pathname.startsWith('/video/')) {
         setTimeout(scanPage, 1500);
@@ -299,31 +350,43 @@ export const ThumbnailEnhancerModule: Module = {
             STORAGE_KEYS.THUMB_STATUS,
             STORAGE_KEYS.THUMB_RES,
             STORAGE_KEYS.THUMB_PCOUNT,
+            STORAGE_KEYS.THUMB_DOWNLOADED,
             STORAGE_KEYS.THUMB_STYLE
         ], (result) => {
             settings.enableStatus = (result[STORAGE_KEYS.THUMB_STATUS] ?? true) as boolean;
             settings.enableRes = (result[STORAGE_KEYS.THUMB_RES] ?? true) as boolean;
             settings.enablePCount = (result[STORAGE_KEYS.THUMB_PCOUNT] ?? true) as boolean;
+            settings.enableDownloaded = (result[STORAGE_KEYS.THUMB_DOWNLOADED] ?? true) as boolean;
             settings.styleMode = (result[STORAGE_KEYS.THUMB_STYLE] || 'text') as string;
 
-            if (settings.enableStatus || settings.enableRes || settings.enablePCount) {
+            if (settings.enableStatus || settings.enableRes || settings.enablePCount || settings.enableDownloaded) {
                 start();
             }
         });
 
         chrome.storage.onChanged.addListener((changes) => {
-            const keys = [STORAGE_KEYS.THUMB_STATUS, STORAGE_KEYS.THUMB_RES, STORAGE_KEYS.THUMB_PCOUNT, STORAGE_KEYS.THUMB_STYLE];
+            const keys = [
+                STORAGE_KEYS.THUMB_STATUS, 
+                STORAGE_KEYS.THUMB_RES, 
+                STORAGE_KEYS.THUMB_PCOUNT, 
+                STORAGE_KEYS.THUMB_DOWNLOADED,
+                STORAGE_KEYS.THUMB_STYLE
+            ];
             if (keys.some(k => changes[k])) {
                 if (changes[STORAGE_KEYS.THUMB_STATUS]) settings.enableStatus = changes[STORAGE_KEYS.THUMB_STATUS].newValue as boolean;
                 if (changes[STORAGE_KEYS.THUMB_RES]) settings.enableRes = changes[STORAGE_KEYS.THUMB_RES].newValue as boolean;
                 if (changes[STORAGE_KEYS.THUMB_PCOUNT]) settings.enablePCount = changes[STORAGE_KEYS.THUMB_PCOUNT].newValue as boolean;
+                if (changes[STORAGE_KEYS.THUMB_DOWNLOADED]) {
+                    settings.enableDownloaded = changes[STORAGE_KEYS.THUMB_DOWNLOADED].newValue as boolean;
+                    if (settings.enableDownloaded) updateDownloadHistory();
+                }
                 
                 if (changes[STORAGE_KEYS.THUMB_STYLE]) {
                     settings.styleMode = changes[STORAGE_KEYS.THUMB_STYLE].newValue as string;
                     updateStyleContent();
                 }
 
-                if (!isRunning && (settings.enableStatus || settings.enableRes || settings.enablePCount)) {
+                if (!isRunning && (settings.enableStatus || settings.enableRes || settings.enablePCount || settings.enableDownloaded)) {
                     start();
                 }
 

@@ -13,7 +13,8 @@
   ],
   "host_permissions": [
     "*://api.bilibili.com/*",
-    "*://*.hdslb.com/*"
+    "*://*.hdslb.com/*",
+    "http://127.0.0.1/*"
   ],
   "background": {
     "service_worker": "background.js"

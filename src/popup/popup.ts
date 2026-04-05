@@ -26,6 +26,7 @@ const coverRadios = document.querySelectorAll('input[name="cover-size"]');
 // 缩略图增强 - 开关
 const toggleThumbRes = document.getElementById('toggle-thumb-res') as HTMLInputElement;
 const toggleThumbPCount = document.getElementById('toggle-thumb-pcount') as HTMLInputElement;
+const toggleThumbDownloaded = document.getElementById('toggle-thumb-downloaded') as HTMLInputElement;
 const toggleDownloadVideo = document.getElementById('toggle-download-video') as HTMLInputElement;
 
 // 缩略图增强 - 状态与样式 (Radio 组)
@@ -51,6 +52,7 @@ setupToggle(toggleMs, STORAGE_KEYS.MS_DISPLAY);
 setupToggle(toggleHighlight, STORAGE_KEYS.HIGHLIGHT);
 setupToggle(toggleThumbRes, STORAGE_KEYS.THUMB_RES);
 setupToggle(toggleThumbPCount, STORAGE_KEYS.THUMB_PCOUNT);
+setupToggle(toggleThumbDownloaded, STORAGE_KEYS.THUMB_DOWNLOADED);
 setupToggle(toggleDownloadVideo, 'enable_download_video', false);
 
 // Wait to initialize Duration Filter toggle to pass the callback
