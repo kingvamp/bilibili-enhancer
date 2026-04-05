@@ -38,7 +38,7 @@ const chargingRadios = document.querySelectorAll('input[name="charging-mode"]');
 // 社交增强
 const toggleHighlight = document.getElementById('toggle-highlight') as HTMLInputElement;
 const btnUpdate = document.getElementById('btn-force-update') as HTMLButtonElement;
-const inputFavId = document.getElementById('input-fav-id') as HTMLInputElement;
+
 
 // 时长筛选
 const toggleDurationFilter = document.getElementById('toggle-duration-filter') as HTMLInputElement;
@@ -166,30 +166,6 @@ if (btnUpdate) {
             btnUpdate.style.opacity = "1";
         }, 2000);
     });
-}
-
-
-// === 8. 初始化收藏夹设置与联动 ===
-if (inputFavId) {
-    chrome.storage.sync.get(['fav_folder_id'], (result) => {
-        inputFavId.value = (result['fav_folder_id'] as string) || '';
-    });
-    inputFavId.addEventListener('change', () => {
-        chrome.storage.sync.set({ 'fav_folder_id': inputFavId.value.trim() });
-    });
-
-    if (toggleDownloadVideo) {
-        const favContainer = inputFavId.closest('.setting-item') as HTMLElement;
-        if (favContainer) {
-            chrome.storage.sync.get(['enable_download_video'], (res) => {
-                const val = res['enable_download_video'] !== undefined ? res['enable_download_video'] : false;
-                favContainer.style.display = val ? 'flex' : 'none';
-            });
-            toggleDownloadVideo.addEventListener('change', () => {
-                favContainer.style.display = toggleDownloadVideo.checked ? 'flex' : 'none';
-            });
-        }
-    }
 }
 
 
