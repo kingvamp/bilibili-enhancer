@@ -31,7 +31,7 @@
         "*://*.bilibili.com/*"
       ],
       "js": ["content.js"],
-      "css": ["thumbnail.css"],
+      "css": ["thumbnail.css", "favorite.css"],
       "run_at": "document_idle"
     }
   ]

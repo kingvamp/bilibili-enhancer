@@ -1,0 +1,30 @@
+/* 1. 封面悬停按钮样式 */
+.gm-quick-fav-hover {
+    position: absolute; top: 4px; left: 4px; width: 26px; height: 26px;
+    background-color: rgba(0, 0, 0, 0.65); color: white; border-radius: 50%;
+    text-align: center; line-height: 26px; font-size: 14px; cursor: pointer;
+    z-index: 1000; transition: all 0.2s; user-select: none; display: none;
+    backdrop-filter: blur(4px); font-family: Arial, sans-serif;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.b-link-cover:hover .gm-quick-fav-hover, 
+.bili-video-card:hover .gm-quick-fav-hover,
+.v-img:hover .gm-quick-fav-hover { display: block; }
+
+/* 兼容性修复：确保父级是相对定位 (仅对我们注入了按钮的元素生效) */
+.gm-fav-rel-parent { position: relative !important; overflow: visible !important; }
+
+/* 2. 视频页底栏按钮样式 */
+.gm-toolbar-fav-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #61666d; transition: all 0.3s;
+    margin-left: 18px; margin-right: 2px; font-size: 14px;
+    line-height: 24px; user-select: none; flex-shrink: 0; position: relative; z-index: 10;
+}
+.gm-toolbar-fav-btn:hover { color: #00AEEC; }
+.gm-toolbar-fav-btn svg { width: 22px; height: 22px; margin-right: 6px; fill: currentColor; }
+[data-theme='dark'] .gm-toolbar-fav-btn { color: #aaa; }
+[data-theme='dark'] .gm-toolbar-fav-btn:hover { color: #00AEEC; }
+
+/* 成功状态 */
+.gm-fav-success { color: #00AEEC !important; }
