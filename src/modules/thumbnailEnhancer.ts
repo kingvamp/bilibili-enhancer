@@ -1,14 +1,10 @@
 import { Module } from '../types';
 import { STORAGE_KEYS } from '../constants';
-import { StyleManager } from '../utils/style';
 import { DownloadHistoryService } from '../services/downloadHistory';
 import { ThumbnailRenderer } from './thumbnail/ThumbnailRenderer';
 import { PageScanner } from './thumbnail/PageScanner';
 import { TitleBadgeManager } from './thumbnail/TitleBadge';
-import { InfoDecorator, StatusDecorator, DownloadedDecorator } from './thumbnail/Decorators';
-import { CSS_THUMBNAIL, CSS_TRIANGLE_MODE } from './thumbnail/styles';
-
-const STYLE_ID = 'bili-thumb-enhancer-style';
+import { InfoDecorator, StatusDecorator, DownloadedDecorator } from './thumbnail/plugins';
 
 interface ThumbnailSettings {
     enableStatus: boolean;
@@ -33,8 +29,8 @@ let scanner: PageScanner;
 let titleBadge: TitleBadgeManager;
 
 function updateStyles() {
-    const modeCss = settings.styleMode === 'triangle' ? CSS_TRIANGLE_MODE : '';
-    StyleManager.update(STYLE_ID, CSS_THUMBNAIL + modeCss);
+    document.body.classList.remove('bili-thumb-style-text', 'bili-thumb-style-triangle');
+    document.body.classList.add(`bili-thumb-style-${settings.styleMode}`);
 }
 
 function start() {
@@ -50,7 +46,7 @@ function start() {
     renderer.addDecorator(new InfoDecorator());
 
     // 2. 初始化扫描器
-    scanner = new PageScanner((el, bvid) => {
+    scanner = new PageScanner((el: HTMLElement, bvid: string) => {
         renderer.enqueue(el, bvid);
     });
     scanner.start();
