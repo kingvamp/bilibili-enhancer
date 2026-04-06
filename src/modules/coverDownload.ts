@@ -35,7 +35,7 @@ function downloadAction(container: HTMLElement) {
     }
 
     const textSpan = container.querySelector('.bili-cover-text') as HTMLElement;
-    if(textSpan) textSpan.innerText = '下载中...';
+    if (textSpan) textSpan.innerText = '下载中...';
 
     const titleElement = document.querySelector('h1.video-title') || document.title;
     const titleText = (titleElement instanceof HTMLElement ? titleElement.innerText : titleElement) || 'cover';
@@ -48,7 +48,7 @@ function downloadAction(container: HTMLElement) {
         chrome.runtime.sendMessage({ action: 'fetchImageBlob', url: coverUrl }, (response) => {
             if (response && response.success && response.data) {
                 const link = document.createElement('a');
-                link.href = response.data; 
+                link.href = response.data;
                 link.download = fileName;
                 document.body.appendChild(link);
                 link.click();
@@ -58,11 +58,11 @@ function downloadAction(container: HTMLElement) {
                 window.open(coverUrl, '_blank');
                 showToast('⚠️ 下载失败，已在新标签页打开');
             }
-            if(textSpan) textSpan.innerText = '封面';
+            if (textSpan) textSpan.innerText = '封面';
         });
     } catch (e) {
         const span = container.querySelector('.bili-cover-text') as HTMLElement;
-        if(span) span.innerText = '封面';
+        if (span) span.innerText = '封面';
     }
 }
 
@@ -100,7 +100,7 @@ function renderButton(container: HTMLElement) {
         const url = getCoverUrl();
         if (url) {
             previewImg.src = url;
-            previewImg.style.width = getCurrentWidthStyle(); 
+            previewImg.style.width = getCurrentWidthStyle();
             previewImg.style.display = 'block';
         }
     };
@@ -115,13 +115,11 @@ export const CoverDownloadModule: Module = {
     init: () => {
         chrome.storage.sync.get([STORAGE_KEYS.COVER_SIZE], (result) => {
             currentSizeKey = (result[STORAGE_KEYS.COVER_SIZE] || 'medium') as string;
-            ToolbarManager.getInstance().refresh();
         });
 
         chrome.storage.onChanged.addListener((changes) => {
             if (changes[STORAGE_KEYS.COVER_SIZE]) {
                 currentSizeKey = changes[STORAGE_KEYS.COVER_SIZE].newValue as string;
-                ToolbarManager.getInstance().refresh();
             }
         });
 

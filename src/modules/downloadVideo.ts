@@ -48,7 +48,7 @@ function renderButton(container: HTMLElement) {
         return;
     }
     container.style.display = 'inline-flex';
-    
+
     if (container.dataset.rendered === 'true') return;
     container.dataset.rendered = 'true';
 
@@ -60,7 +60,6 @@ export const VideoDownloadModule: Module = {
     init: () => {
         chrome.storage.sync.get(['enable_download_video'], (result) => {
             isEnabled = (result['enable_download_video'] !== undefined ? result['enable_download_video'] : false) as boolean;
-            ToolbarManager.getInstance().refresh();
         });
 
         chrome.storage.onChanged.addListener((changes) => {

@@ -35,7 +35,7 @@ const Core = (() => {
     function check(): void {
         // 1. 寻找播放器控制栏
         const controls = document.querySelector('.bpx-player-control-bottom-right') ||
-                         document.querySelector('.bilibili-player-video-control-bottom-right');
+            document.querySelector('.bilibili-player-video-control-bottom-right');
         if (controls && controls instanceof HTMLElement) {
             // 只有找到控制栏，才初始化这些模块
             RotationModule.init(controls);

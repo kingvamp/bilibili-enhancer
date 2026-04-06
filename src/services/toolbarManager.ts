@@ -13,7 +13,7 @@ export class ToolbarManager {
     private items: ToolbarItem[] = [];
     private groupContainer: HTMLElement | null = null;
 
-    private constructor() {}
+    private constructor() { }
 
     public static getInstance(): ToolbarManager {
         if (!ToolbarManager.instance) {
@@ -34,11 +34,16 @@ export class ToolbarManager {
     private isUpdating = false;
 
     public refresh() {
+        console.trace('[ToolbarManager] Refresh triggered!');
         if (this.isUpdating) return;
-        
-        const toolbar = document.querySelector('.video-toolbar-left') || 
-                        document.querySelector('.toolbar-left');
-        if (!toolbar || !(toolbar instanceof HTMLElement)) return;
+
+        const toolbar = document.querySelector('.video-toolbar-left') ||
+            document.querySelector('.toolbar-left');
+        if (!toolbar || !(toolbar instanceof HTMLElement)) {
+            // 如果没找到工具栏，说明可能已经离开视频页，清空容器引用
+            this.groupContainer = null;
+            return;
+        }
 
         this.isUpdating = true;
         try {
@@ -47,6 +52,10 @@ export class ToolbarManager {
                 group = document.createElement('div');
                 group.id = 'gm-enhancer-toolbar-group';
                 group.className = 'gm-toolbar-group';
+            }
+
+            // 只有当 group 不在当前 toolbar 下时才执行插入
+            if (group.parentElement !== toolbar) {
                 toolbar.appendChild(group);
             }
 
@@ -60,16 +69,18 @@ export class ToolbarManager {
     private renderItems() {
         if (!this.groupContainer) return;
 
-        this.items.forEach(item => {
+        this.items.forEach((item, index) => {
             let itemContainer = document.getElementById(item.id);
             if (!itemContainer) {
                 itemContainer = document.createElement('div');
                 itemContainer.id = item.id;
                 itemContainer.className = 'gm-toolbar-item';
             }
-            
-            // 顺序 append 即可保证物理顺序一致
-            this.groupContainer!.appendChild(itemContainer);
+
+            // 只有当位置不对时才执行 appendChild (减少 DOM 变动通知)
+            if (this.groupContainer!.children[index] !== itemContainer) {
+                this.groupContainer!.insertBefore(itemContainer, this.groupContainer!.children[index] || null);
+            }
 
             item.render(itemContainer);
         });
@@ -79,39 +90,38 @@ export class ToolbarManager {
      * 启动监听 (SPA 兼容)
      */
     public startObserver() {
-        let lastRun = 0;
+        let timer: any = null;
+
+        // 1. 尝试寻找更窄的观察范围
+        const targetNode = document.getElementById('app') || document.querySelector('.v-wrap') || document.body;
+
         const observer = new MutationObserver((mutations) => {
             if (!chrome.runtime?.id) {
                 observer.disconnect();
                 return;
             }
 
-            // 1. 过滤掉纯内部元素的变更，避免干扰
-            const isPureInternal = mutations.every(m => {
-                const target = m.target as HTMLElement;
-                return target.id === 'gm-enhancer-toolbar-group' || target.closest('#gm-enhancer-toolbar-group');
-            });
-            if (isPureInternal) return;
-
-            // 2. 只有当关键容器发生变化，或者 Body 发生结构性变化时才尝试刷新
             const isRelevant = mutations.some(m => {
                 const target = m.target as HTMLElement;
                 if (!target || !target.classList) return false;
-                return target.classList.contains('video-toolbar-left') || 
-                       target.classList.contains('toolbar-left') ||
-                       target.tagName === 'BODY';
-            });
-            if (!isRelevant) return;
 
-            // 3. 节流处理 (500ms)
-            const now = Date.now();
-            if (now - lastRun > 500) {
-                this.refresh();
-                lastRun = now;
+                // 排除顶栏和导航栏的日常闪烁，不理会它们的变动
+                if (target.classList.contains('bili-header') || target.closest('.bili-header')) return false;
+
+                // 仅关注工具栏或相关业务容器
+                return target.classList.contains('video-toolbar-left') ||
+                    target.classList.contains('toolbar-left') ||
+                    target.id === 'arc_toolbar_report' ||
+                    target.classList.contains('video-info-container');
+            });
+
+            if (isRelevant) {
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(() => this.refresh(), 50);
             }
         });
-        
-        observer.observe(document.body, { childList: true, subtree: true });
+
+        observer.observe(targetNode, { childList: true, subtree: true });
         this.refresh();
     }
 }

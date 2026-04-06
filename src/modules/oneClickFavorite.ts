@@ -41,17 +41,16 @@ export const OneClickFavoriteModule: Module = {
             if (isEnabled) {
                 start();
             }
-            ToolbarManager.getInstance().refresh();
         });
 
-        chrome.storage.onChanged.addListener((changes) => {
-            if (changes[STORAGE_KEYS.ONE_CLICK_FAVORITE]) {
-                isEnabled = changes[STORAGE_KEYS.ONE_CLICK_FAVORITE].newValue as boolean;
-                if (isEnabled && !isRunning) {
-                    start();
-                }
-                ToolbarManager.getInstance().refresh();
-            }
-        });
+        // chrome.storage.onChanged.addListener((changes) => {
+        //     if (changes[STORAGE_KEYS.ONE_CLICK_FAVORITE]) {
+        //         isEnabled = changes[STORAGE_KEYS.ONE_CLICK_FAVORITE].newValue as boolean;
+        //         if (isEnabled && !isRunning) {
+        //             start();
+        //         }
+        //     }
+        //     ToolbarManager.getInstance().refresh();
+        // });
     }
 };
