@@ -29,18 +29,8 @@ function start() {
     observer.observe(document.body, { childList: true, subtree: true });
 
     // 2. 初始化视频页监听 (工具栏)
-    const timer = setInterval(() => {
-        if (!chrome.runtime?.id) {
-            clearInterval(timer);
-            return;
-        }
-        const isVideoPage = location.pathname.startsWith('/video/') || 
-                           location.pathname.startsWith('/list/') || 
-                           location.href.includes('watchlater');
-        if (isVideoPage) {
-            toolbarPart.render();
-        }
-    }, 2000);
+    // 已经通过 ToolbarManager 全局启动，此处只需确保按钮已注册
+    // ToolbarFavButton 的 constructor 已经完成了 register
 }
 
 export const OneClickFavoriteModule: Module = {

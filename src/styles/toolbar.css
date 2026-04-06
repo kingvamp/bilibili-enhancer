@@ -1,0 +1,48 @@
+/* 增强功能工具栏组 */
+.gm-toolbar-group {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 18px;
+    gap: 16px;
+    position: relative;
+    z-index: 10;
+}
+
+/* 统一工具栏按钮样式 */
+.gm-toolbar-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #61666d;
+    transition: all 0.3s;
+    font-size: 14px;
+    line-height: 24px;
+    user-select: none;
+    position: relative;
+}
+
+.gm-toolbar-item:hover {
+    color: #00AEEC;
+}
+
+.gm-toolbar-item svg {
+    width: 22px;
+    height: 22px;
+    margin-right: 4px;
+    fill: currentColor;
+}
+
+/* 适配 B 站暗黑模式 */
+[data-theme='dark'] .gm-toolbar-item {
+    color: #aaa;
+}
+
+[data-theme='dark'] .gm-toolbar-item:hover {
+    color: #00AEEC;
+}
+
+/* 成功/激活状态 */
+.gm-item-active {
+    color: #00AEEC !important;
+}

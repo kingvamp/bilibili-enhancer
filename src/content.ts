@@ -19,12 +19,12 @@ ThumbnailEnhancerModule.init();
 ChargingBlockerModule.init();
 DurationFilterModule.init();
 OneClickFavoriteModule.init();
+import { ToolbarManager } from './services/toolbarManager';
+
 // === 视频页专用功能 ===
-// 封面下载模块依赖 DOM 里的 Toolbar，可以独立初始化，也可以放在 Core 里
-// 建议独立初始化，因为它不依赖播放器内核，只依赖网页结构
-//MARK B站顶部工具栏会刷新一次，需要等刷新完才注入
 setTimeout(() => {
     if (!chrome.runtime?.id) return;
+    ToolbarManager.getInstance().startObserver();
     CoverDownloadModule.init();
     VideoDownloadModule.init();
 }, 2000);
