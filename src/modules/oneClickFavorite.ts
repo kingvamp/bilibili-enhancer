@@ -2,6 +2,7 @@ import { Module } from '../types';
 import { STORAGE_KEYS } from '../constants';
 import { ThumbnailFavButton } from './favorite/ThumbnailFavButton';
 import { ToolbarFavButton } from './favorite/ToolbarFavButton';
+import { ToolbarManager } from '../services/toolbarManager';
 
 let isEnabled = true;
 let isRunning = false;
@@ -40,6 +41,7 @@ export const OneClickFavoriteModule: Module = {
             if (isEnabled) {
                 start();
             }
+            ToolbarManager.getInstance().refresh();
         });
 
         chrome.storage.onChanged.addListener((changes) => {
@@ -48,6 +50,7 @@ export const OneClickFavoriteModule: Module = {
                 if (isEnabled && !isRunning) {
                     start();
                 }
+                ToolbarManager.getInstance().refresh();
             }
         });
     }

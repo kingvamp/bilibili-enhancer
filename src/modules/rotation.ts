@@ -36,19 +36,19 @@ function rotateVideo(deg: number): void {
 /**
  * 创建控制栏按钮
  * @param id 按钮元素ID
- * @param path SVG图标路径
+ * @param iconHtml SVG图标HTML
  * @param title 提示文本
  * @param margin 样式边距
  * @param onClick 点击回调
  */
-function createBtn(id: string, path: string, title: string, margin: string, onClick: () => void): HTMLElement | null {
+function createBtn(id: string, iconHtml: string, title: string, margin: string, onClick: () => void): HTMLElement | null {
     if (document.getElementById(id)) return null;
     
     const btn = document.createElement('div');
     btn.id = id;
     btn.className = 'bpx-player-ctrl-btn';
-    btn.style.cssText = `margin-right: ${margin}; cursor: pointer; color: hsla(0,0%,100%,.8);`;
-    btn.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">${path}</svg>`;
+    btn.style.cssText = `margin-right: ${margin}; cursor: pointer; color: hsla(0,0%,100%,.8); display: flex; align-items: center; justify-content: center;`;
+    btn.innerHTML = iconHtml;
     btn.setAttribute('aria-label', title);
     btn.onclick = onClick;
     // 添加悬停效果
@@ -65,8 +65,8 @@ export const RotationModule: Module = {
     init: (container?: HTMLElement) => {
         if (!container) return;
         // 创建左右旋转按钮
-        const btnRight = createBtn(DOM_IDS.ROTATION_RIGHT_BTN, ICONS.ROTATE_RIGHT_PATH, '向右旋转', '12px', () => rotateVideo(90));
-        const btnLeft = createBtn(DOM_IDS.ROTATION_LEFT_BTN, ICONS.ROTATE_LEFT_PATH, '向左旋转', '4px', () => rotateVideo(-90));
+        const btnRight = createBtn(DOM_IDS.ROTATION_RIGHT_BTN, ICONS.ROTATE_RIGHT, '向右旋转', '12px', () => rotateVideo(90));
+        const btnLeft = createBtn(DOM_IDS.ROTATION_LEFT_BTN, ICONS.ROTATE_LEFT, '向左旋转', '4px', () => rotateVideo(-90));
         
         // 插入到控制栏最前面
         if (btnRight) container.insertBefore(btnRight, container.firstChild);

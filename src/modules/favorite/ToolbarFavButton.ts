@@ -11,22 +11,25 @@ export class ToolbarFavButton {
     private lastBvid: string = '';
 
     constructor(private isEnabled: boolean) {
-        if (this.isEnabled) {
-            ToolbarManager.getInstance().register({
-                id: 'gm-one-click-fav-btn',
-                order: 10,
-                render: (container) => this.renderInternal(container)
-            });
-        }
+        ToolbarManager.getInstance().register({
+            id: 'gm-one-click-fav-btn',
+            order: 10,
+            render: (container) => this.renderInternal(container)
+        });
     }
 
     private async renderInternal(btn: HTMLElement) {
+        if (!this.isEnabled) {
+            btn.style.display = 'none';
+            return;
+        }
+        btn.style.display = 'inline-flex';
         const bvidMatch = location.href.match(/(BV\w{10})/);
         const currentBvid = bvidMatch ? bvidMatch[1] : null;
         if (!currentBvid) return;
 
-        // SPA 路由切换处理
-        if (this.lastBvid !== currentBvid) {
+        // SPA 路由切换处理 (或者容器被重新创建)
+        if (this.lastBvid !== currentBvid || !btn.innerHTML) {
             this.resetButton(btn, currentBvid);
             const isFav = await this.service.checkIsFavorited(currentBvid);
             if (isFav) {

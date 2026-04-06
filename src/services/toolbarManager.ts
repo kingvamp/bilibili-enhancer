@@ -31,26 +31,30 @@ export class ToolbarManager {
         this.items.sort((a, b) => a.order - b.order);
     }
 
-    /**
-     * 渲染/刷新工具栏
-     */
+    private isUpdating = false;
+
     public refresh() {
+        if (this.isUpdating) return;
+        
         const toolbar = document.querySelector('.video-toolbar-left') || 
                         document.querySelector('.toolbar-left');
         if (!toolbar || !(toolbar instanceof HTMLElement)) return;
 
-        let group = document.getElementById('gm-enhancer-toolbar-group');
-        if (!group) {
-            group = document.createElement('div');
-            group.id = 'gm-enhancer-toolbar-group';
-            group.className = 'gm-toolbar-group';
-            
-            // 插入位置：通常在原有按钮之后
-            toolbar.appendChild(group);
-        }
+        this.isUpdating = true;
+        try {
+            let group = document.getElementById('gm-enhancer-toolbar-group');
+            if (!group) {
+                group = document.createElement('div');
+                group.id = 'gm-enhancer-toolbar-group';
+                group.className = 'gm-toolbar-group';
+                toolbar.appendChild(group);
+            }
 
-        this.groupContainer = group;
-        this.renderItems();
+            this.groupContainer = group;
+            this.renderItems();
+        } finally {
+            this.isUpdating = false;
+        }
     }
 
     private renderItems() {
@@ -64,13 +68,8 @@ export class ToolbarManager {
                 itemContainer.className = 'gm-toolbar-item';
             }
             
-            // 始终 append 以确保顺序正确 (appendChild 会移动已存在的元素)
-            if (itemContainer.parentElement !== this.groupContainer) {
-                this.groupContainer!.appendChild(itemContainer);
-            } else if (this.groupContainer!.lastElementChild !== itemContainer) {
-                // 如果不是最后一个，重新 append 也会把它移到最后，这样按顺序 append 就能保证最终物理顺序
-                this.groupContainer!.appendChild(itemContainer);
-            }
+            // 顺序 append 即可保证物理顺序一致
+            this.groupContainer!.appendChild(itemContainer);
 
             item.render(itemContainer);
         });
@@ -80,15 +79,39 @@ export class ToolbarManager {
      * 启动监听 (SPA 兼容)
      */
     public startObserver() {
-        const check = () => this.refresh();
-        const observer = new MutationObserver(() => {
+        let lastRun = 0;
+        const observer = new MutationObserver((mutations) => {
             if (!chrome.runtime?.id) {
                 observer.disconnect();
                 return;
             }
-            check();
+
+            // 1. 过滤掉纯内部元素的变更，避免干扰
+            const isPureInternal = mutations.every(m => {
+                const target = m.target as HTMLElement;
+                return target.id === 'gm-enhancer-toolbar-group' || target.closest('#gm-enhancer-toolbar-group');
+            });
+            if (isPureInternal) return;
+
+            // 2. 只有当关键容器发生变化，或者 Body 发生结构性变化时才尝试刷新
+            const isRelevant = mutations.some(m => {
+                const target = m.target as HTMLElement;
+                if (!target || !target.classList) return false;
+                return target.classList.contains('video-toolbar-left') || 
+                       target.classList.contains('toolbar-left') ||
+                       target.tagName === 'BODY';
+            });
+            if (!isRelevant) return;
+
+            // 3. 节流处理 (500ms)
+            const now = Date.now();
+            if (now - lastRun > 500) {
+                this.refresh();
+                lastRun = now;
+            }
         });
+        
         observer.observe(document.body, { childList: true, subtree: true });
-        check();
+        this.refresh();
     }
 }

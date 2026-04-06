@@ -115,11 +115,13 @@ export const CoverDownloadModule: Module = {
     init: () => {
         chrome.storage.sync.get([STORAGE_KEYS.COVER_SIZE], (result) => {
             currentSizeKey = (result[STORAGE_KEYS.COVER_SIZE] || 'medium') as string;
+            ToolbarManager.getInstance().refresh();
         });
 
         chrome.storage.onChanged.addListener((changes) => {
             if (changes[STORAGE_KEYS.COVER_SIZE]) {
                 currentSizeKey = changes[STORAGE_KEYS.COVER_SIZE].newValue as string;
+                ToolbarManager.getInstance().refresh();
             }
         });
 

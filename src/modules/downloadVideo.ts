@@ -60,11 +60,13 @@ export const VideoDownloadModule: Module = {
     init: () => {
         chrome.storage.sync.get(['enable_download_video'], (result) => {
             isEnabled = (result['enable_download_video'] !== undefined ? result['enable_download_video'] : false) as boolean;
+            ToolbarManager.getInstance().refresh();
         });
 
         chrome.storage.onChanged.addListener((changes) => {
             if (changes['enable_download_video']) {
                 isEnabled = changes['enable_download_video'].newValue as boolean;
+                ToolbarManager.getInstance().refresh();
             }
         });
 
