@@ -1,5 +1,6 @@
 import { FavoriteService } from '../../services/favorite';
-import { ICONS } from './icons';
+import { ICONS } from '../../constants/icons';
+
 import { DOM_IDS } from '../../constants';
 import { bvToAv } from '../../bilibili';
 
@@ -63,7 +64,7 @@ export class ToolbarFavButton {
     }
 
     private resetButton(btn: HTMLElement, bvid: string) {
-        btn.innerHTML = ICONS.heart + '<span>一键收藏</span>';
+        btn.innerHTML = ICONS.HEART + '<span>一键收藏</span>';
         btn.classList.remove('gm-fav-success', 'gm-item-active');
         btn.style.pointerEvents = 'auto';
         btn.dataset.loading = "false";
@@ -71,7 +72,7 @@ export class ToolbarFavButton {
     }
 
     private markAsSuccess(btn: HTMLElement) {
-        btn.innerHTML = ICONS.check + '<span>已收藏</span>';
+        btn.innerHTML = ICONS.CHECK + '<span>已收藏</span>';
         btn.classList.add('gm-fav-success', 'gm-item-active');
         btn.style.pointerEvents = 'none';
     }

@@ -3,16 +3,8 @@ import { Module } from '../types';
 import { COVER_SIZES, STORAGE_KEYS, DOM_IDS } from '../constants';
 import { showToast } from '../utils/toast';
 import { ToolbarManager } from '../services/toolbarManager';
+import { ICONS } from '../constants/icons';
 
-// 当前预览尺寸 Key (默认为 medium)
-let currentSizeKey = 'medium';
-
-// SVG 图标
-const SVG_ICON = `
-    <svg viewBox="0 0 1024 1024" version="1.1" width="28" height="28">
-        <path d="M928 160H96c-17.7 0-32 14.3-32 32v640c0 17.7 14.3 32 32 32h832c17.7 0 32-14.3 32-32V192c0-17.7-14.3-32-32-32zM336 448c-35.3 0-64-28.7-64-64s28.7-64 64-64 64 28.7 64 64-28.7 64-64 64z m528 352H160v-66.6l165.5-206.9c5.1-6.4 14.8-7.2 20.8-1.7l116.3 106.6 200.5-240.2c5.6-6.7 15.9-6.9 21.7-0.4L864 736v64z" fill="currentColor"></path>
-    </svg>
-`;
 
 function getCoverUrl(): string | null {
     const meta = document.querySelector('meta[property="og:image"]') as HTMLMetaElement;
@@ -80,11 +72,14 @@ function getCurrentWidthStyle(): string {
     return size ? `${size}px` : `${COVER_SIZES.medium}px`;
 }
 
+// 当前预览尺寸 Key (默认为 medium)
+let currentSizeKey = 'medium';
+
 function renderButton(container: HTMLElement) {
     if (container.dataset.rendered === 'true') return;
     container.dataset.rendered = 'true';
 
-    container.innerHTML = `${SVG_ICON}<span class="bili-cover-text" style="padding-top: 2px; min-width: 28px;">封面</span>`;
+    container.innerHTML = `${ICONS.COVER}<span class="bili-cover-text" style="padding-top: 2px; min-width: 28px;">封面</span>`;
 
     const previewImg = document.createElement('img');
     previewImg.id = DOM_IDS.COVER_PREVIEW_IMG;

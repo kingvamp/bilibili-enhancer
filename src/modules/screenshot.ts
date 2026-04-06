@@ -1,10 +1,8 @@
 import { Module } from '../types';
 import { showToast } from '../utils/toast';
 import { DOM_IDS } from '../constants';
+import { ICONS } from '../constants/icons';
 
-// 快捷键配置：Shift + S
-const HOTKEY = { key: 'S', shift: true };
-const CAMERA_ICON = `<svg viewBox="0 0 24 24" width="22" height="22" fill="#ffffff" style="vertical-align: middle;"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm0 4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>`;
 
 // 数字补零辅助函数
 function pad(n: number): string { return n.toString().padStart(2, '0'); }
@@ -87,6 +85,9 @@ function bindKey() {
     isKeyBound = true;
 }
 
+// 快捷键配置：Shift + S
+const HOTKEY = { key: 'S', shift: true };
+
 export const ScreenshotModule: Module = {
     init: (container?: HTMLElement) => {
         if (!container) return;
@@ -99,7 +100,7 @@ export const ScreenshotModule: Module = {
         btn.id = DOM_IDS.SCREENSHOT_BTN;
         btn.className = 'bpx-player-ctrl-btn bpx-player-ctrl-setting';
         btn.style.cssText = 'margin-right: 10px; cursor: pointer;';
-        btn.innerHTML = CAMERA_ICON;
+        btn.innerHTML = ICONS.CAMERA;
         btn.title = `截图 (Shift+S)`;
         btn.onclick = capture;
         

@@ -2,12 +2,8 @@ import { Module } from '../types';
 import { showToast } from '../utils/toast';
 import { DOM_IDS } from '../constants';
 import { ToolbarManager } from '../services/toolbarManager';
+import { ICONS } from '../constants/icons';
 
-const SVG_ICON = `
-    <svg viewBox="0 0 1024 1024" version="1.1" width="24" height="24">
-        <path d="M853.33 896H170.67a42.67 42.67 0 0 1-42.67-42.67v-85.33a42.67 42.67 0 0 1 42.67-42.67h682.66a42.67 42.67 0 0 1 42.67 42.67v85.33a42.67 42.67 0 0 1-42.67 42.67zM512 682.67a42.15 42.15 0 0 1-30.17-12.5L268.5 456.83a42.67 42.67 0 0 1 60.33-60.33l140.5 140.5V128a42.67 42.67 0 0 1 85.34 0v409l140.5-140.5a42.67 42.67 0 0 1 60.33 60.33L542.17 670.17A42.15 42.15 0 0 1 512 682.67z" fill="currentColor"></path>
-    </svg>
-`;
 
 // --- 类型定义 ---
 interface VideoState {
@@ -56,7 +52,7 @@ function renderButton(container: HTMLElement) {
     if (container.dataset.rendered === 'true') return;
     container.dataset.rendered = 'true';
 
-    container.innerHTML = `${SVG_ICON}<span style="padding-top: 1px;">下载</span>`;
+    container.innerHTML = `${ICONS.DOWNLOAD}<span style="padding-top: 1px;">下载</span>`;
     container.onclick = startDownload;
 }
 
