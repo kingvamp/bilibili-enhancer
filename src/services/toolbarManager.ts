@@ -123,5 +123,16 @@ export class ToolbarManager {
 
         observer.observe(targetNode, { childList: true, subtree: true });
         this.refresh();
+
+        // 2. 增加 URL 变更监听 (处理 SPA 切换)
+        let lastUrl = location.href;
+        setInterval(() => {
+            const currentUrl = location.href;
+            if (currentUrl !== lastUrl) {
+                lastUrl = currentUrl;
+                // URL 变更后，可能 DOM 还没更新，稍微延迟一点刷新
+                setTimeout(() => this.refresh(), 500);
+            }
+        }, 1000);
     }
 }

@@ -2,7 +2,6 @@ import { Module } from '../types';
 import { STORAGE_KEYS } from '../constants';
 import { ThumbnailFavButton } from './favorite/ThumbnailFavButton';
 import { ToolbarFavButton } from './favorite/ToolbarFavButton';
-import { ToolbarManager } from '../services/toolbarManager';
 
 let isEnabled = true;
 let isRunning = false;

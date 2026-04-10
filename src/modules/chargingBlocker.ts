@@ -1,321 +1,70 @@
-import { Module } from '../types';
-import { STORAGE_KEYS } from '../constants';
-
 /**
  * Bilibili Charging Video Blocker
- * Refactored to Functional Module style.
  * 
- * Features:
- * - Hides "Charging Exclusive" (paid) videos.
- * - Uses caching (sessionStorage) to remember safe/blocked videos.
- * - Uses a concurrent queue for API checks to avoid rate limiting.
- * - Uses MutationObserver for dynamic content.
+ * 这个模块负责拦截 B 站的“充电专属”视频（付费视频）。
+ * 已经重构为遵循单一职责原则 (SRP) 的模块化结构：
+ * - ChargingService: 处理 API 调用和缓存管理。
+ * - ChargingUI: 处理样式注入和 DOM 视觉操作。
+ * - ChargingScanner: 处理页面扫描和并发请求队列。
  */
 
-const CACHE_KEY = 'Gemini_Bvid_Cache';
-const MAX_CONCURRENT = 4;
+import { Module } from '../types';
+import { STORAGE_KEYS } from '../constants';
+import { ChargingService } from './charging/ChargingService';
+import { ChargingUI } from './charging/ChargingUI';
+import { ChargingScanner } from './charging/ChargingScanner';
 
-const KEYWORDS = ["充电专属"];
-const CARD_SELECTORS = ['.bili-video-card', '.small-item', '.video-page-card', '.rank-item', '.feed-card', '.cube-list li', '.floor-card', '.recommend-card', '.video-page-card-small', '.bili-dyn-card-video'];
-const WRAPPER_SELECTORS = ['.feed-card', '.bili-video-card__wrap', '.video-list-item', '.col_3', '.col_4', '.card-box', '.upload-video-card', '.items__item', '.floor-card', '.recommend-card', '.video-page-card-small', '.bili-dyn-list__item'];
-
-interface StorageCache {
-  safe: string[];
-  charging: string[];
-}
-
-interface QueueItem {
-  bvid: string;
-  card: HTMLElement;
-  wrapper: HTMLElement;
-}
-
-interface BiliApiResponse {
-  code: number;
-  data?: {
-    is_upower_exclusive?: boolean;
-    is_upower_video?: boolean;
-    rights?: {
-      elec_pay?: number;
-      arc_pay?: number;
-    };
-    badge?: string;
-    [key: string]: any;
-  };
-}
-
-// === CSS for Mask Mode ===
-const MASK_CSS = `
-.gemini-charging-mask {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(255, 255, 255, 0.85); z-index: 10;
-    display: flex; align-items: center; justify-content: center;
-    backdrop-filter: blur(2px); border-radius: 6px;
-    color: #fb7299; font-size: 13px; font-weight: bold;
-    pointer-events: auto; cursor: not-allowed;
-}
-`;
-
-// === State ===
 let currentMode = 'off'; // 'off' | 'mask' | 'hide'
-let safeSet = new Set<string>();
-let chargingSet = new Set<string>();
-const queue: QueueItem[] = [];
-let activeRequests = 0;
-let scanTimeout: number | undefined;
-let observer: MutationObserver | null = null;
-let styleEl: HTMLStyleElement | null = null;
+const service = ChargingService.getInstance();
+const ui = new ChargingUI();
+const scanner = new ChargingScanner(service, ui, currentMode);
 
-// === Helper Functions ===
-
-function loadCache(): void {
-  try {
-    const stored = sessionStorage.getItem(CACHE_KEY);
-    if (stored) {
-      const data: StorageCache = JSON.parse(stored);
-      safeSet = new Set(data.safe);
-      chargingSet = new Set(data.charging);
-    }
-  } catch (e) {
-    console.warn('[ChargingBlocker] Failed to load cache', e);
-  }
-}
-
-function saveCache(): void {
-  try {
-    const data: StorageCache = {
-      safe: Array.from(safeSet),
-      charging: Array.from(chargingSet)
-    };
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
-  } catch (e) {
-    console.warn('[ChargingBlocker] Failed to save cache', e);
-  }
-}
-
-function injectStyle() {
-  if (document.getElementById('gemini-charging-style')) return;
-  styleEl = document.createElement('style');
-  styleEl.id = 'gemini-charging-style';
-  styleEl.textContent = MASK_CSS;
-  document.head.appendChild(styleEl);
-}
-
-function getBvid(card: HTMLElement): string | null {
-  let bvid = card.dataset.targetBvid || card.getAttribute('data-target-bvid');
-  if (!bvid) {
-    const link = card.querySelector<HTMLAnchorElement>('a[href*="/video/BV"]');
-    if (link) {
-      const match = link.href.match(/(BV[a-zA-Z0-9]+)/);
-      if (match) bvid = match[1];
-    }
-  }
-  return bvid || null;
-}
-
-function getWrapper(card: HTMLElement): HTMLElement {
-  const wrapper = card.closest(WRAPPER_SELECTORS.join(', ')) as HTMLElement | null;
-  return (wrapper && wrapper !== document.body) ? wrapper : card;
-}
-
-function hideItem(item: QueueItem): void {
-  item.card.dataset.hiddenByGemini = 'true';
-
-  const applyVisuals = () => {
-    // Check if still marked (in case stop() was called)
-    if (item.card.dataset.hiddenByGemini !== 'true') return;
-
-    if (currentMode === 'hide') {
-      item.wrapper.style.setProperty('display', 'none', 'important');
-    } else if (currentMode === 'mask') {
-      // 确保父容器相对定位，以便遮罩绝对定位
-      if (getComputedStyle(item.wrapper).position === 'static') {
-        item.wrapper.style.position = 'relative';
-      }
-      
-      let mask = item.wrapper.querySelector('.gemini-charging-mask');
-      if (!mask) {
-        mask = document.createElement('div');
-        mask.className = 'gemini-charging-mask';
-        mask.innerHTML = `
-          <div style="display:flex; flex-direction:column; align-items:center;">
-              <span style="font-size:20px; margin-bottom:4px;">⚡</span>
-              <span>充电专属</span>
-          </div>
-        `;
-        item.wrapper.appendChild(mask);
-      }
-      // 确保在遮罩模式下元素是显示的
-      item.wrapper.style.removeProperty('display');
-    }
-  };
-
-  // Delay for recommendation list in video page
-  const isVideoPage = location.pathname.startsWith('/video/');
-  const isRec = item.wrapper.classList.contains('video-page-card') || 
-                item.wrapper.classList.contains('video-page-card-small') ||
-                item.wrapper.classList.contains('recommend-card') ||
-                item.wrapper.closest('.rec-list') || 
-                item.wrapper.closest('.recommend-list');
-
-  if (isVideoPage && isRec && currentMode === 'mask') {
-    setTimeout(applyVisuals, 500);
-  } else {
-    applyVisuals();
-  }
-}
-
-function markSafe(item: QueueItem): void {
-  item.card.dataset.hiddenByGemini = 'safe';
-}
-
-// === Logic ===
-
-async function checkApi(item: QueueItem): Promise<void> {
-  try {
-    const res = await fetch(`https://api.bilibili.com/x/web-interface/view?bvid=${item.bvid}`);
-    const json: BiliApiResponse = await res.json();
-
-    if (json?.code === 0 && json.data) {
-      const d = json.data;
-      const isCharging =
-        d.is_upower_exclusive === true ||
-        d.is_upower_video === true ||
-        d.rights?.elec_pay === 1 ||
-        d.rights?.arc_pay === 1 ||
-        d.badge === '充电专属';
-
-      const str = JSON.stringify(d);
-      const hasHiddenPayFlag = str.includes('"is_pay":1') || str.includes('"is_pay":true');
-
-      if (isCharging || hasHiddenPayFlag) {
-        hideItem(item);
-        chargingSet.add(item.bvid);
-      } else {
-        markSafe(item);
-        safeSet.add(item.bvid);
-      }
-      saveCache();
-    }
-  } catch (e) {
-    // Request failed, do not cache, retry next time
-    delete item.card.dataset.hiddenByGemini;
-  }
-}
-
-function processQueue(): void {
-  while (activeRequests < MAX_CONCURRENT && queue.length > 0) {
-    const item = queue.shift();
-    if (!item) continue;
-
-    activeRequests++;
-    checkApi(item).finally(() => {
-      activeRequests--;
-      processQueue();
-    });
-  }
-}
-
-function scan(): void {
-  if (currentMode === 'off') return;
-  // 安全检查
-  if (!chrome.runtime?.id) {
-    stop();
-    return;
-  }
-  const selectorString = CARD_SELECTORS.join(', ');
-  const cards = document.querySelectorAll<HTMLElement>(selectorString);
-
-  cards.forEach((card) => {
-    if (card.style.display === 'none' || card.dataset.hiddenByGemini) return;
-
-    const wrapper = getWrapper(card);
-
-    // 1. Text check
-    if (KEYWORDS.some(kw => card.innerText.includes(kw))) {
-      hideItem({ bvid: '', card, wrapper });
-      return;
-    }
-
-    // 2. BVID check
-    const bvid = getBvid(card);
-    if (bvid) {
-      if (chargingSet.has(bvid)) {
-        hideItem({ bvid, card, wrapper });
-      } else if (safeSet.has(bvid)) {
-        markSafe({ bvid, card, wrapper });
-      } else {
-        card.dataset.hiddenByGemini = 'processing';
-        queue.push({ bvid, card, wrapper });
-        processQueue();
-      }
-    }
-  });
-}
-
-function debouncedScan(): void {
-  if (scanTimeout) clearTimeout(scanTimeout);
-  scanTimeout = window.setTimeout(scan, 150);
-}
-
+/**
+ * 启动模块
+ */
 function start(): void {
-  if (observer) return;
-  injectStyle();
-  loadCache();
-  scan();
-  observer = new MutationObserver((mutations) => {
-    if (!chrome.runtime?.id) {
-        stop();
-        return;
-    }
-    const shouldCheck = mutations.some(m => m.addedNodes.length > 0);
-    if (shouldCheck) debouncedScan();
-  });
-  observer.observe(document.body, { childList: true, subtree: true });
+  ui.injectStyle();
+  scanner.start();
 }
 
+/**
+ * 停止模块并清理视觉效果
+ */
 function stop(): void {
-  if (observer) {
-    observer.disconnect();
-    observer = null;
-  }
-  if (scanTimeout) clearTimeout(scanTimeout);
-
-  // Restore visibility
-  document.querySelectorAll('[data-hidden-by-gemini="true"]').forEach(el => {
-    const element = el as HTMLElement;
-    const wrapper = getWrapper(element);
-    wrapper.style.removeProperty('display');
-    delete element.dataset.hiddenByGemini;
-
-    // Remove mask
-    const mask = wrapper.querySelector('.gemini-charging-mask');
-    if (mask) mask.remove();
-  });
+  scanner.stop();
+  ui.clearVisuals();
 }
 
 export const ChargingBlockerModule: Module = {
   init: () => {
-    // 1. Load setting
+    // 1. 加载配置设置
     chrome.storage.sync.get([STORAGE_KEYS.HIDE_CHARGING], (result) => {
       let val = result[STORAGE_KEYS.HIDE_CHARGING];
-      // Migration for old boolean value
+      
+      // 兼容旧版的布尔值配置
       if (typeof val === 'boolean') val = val ? 'hide' : 'off';
-      // Default to 'hide'
+      
+      // 默认为 'hide'
       currentMode = (val || 'hide') as string;
 
-      if (currentMode !== 'off') start();
+      scanner.updateMode(currentMode);
+      if (currentMode !== 'off') {
+        start();
+      }
     });
 
-    // 2. Listen for changes
+    // 2. 监听配置变化
     chrome.storage.onChanged.addListener((changes) => {
       if (changes[STORAGE_KEYS.HIDE_CHARGING]) {
         let newVal = changes[STORAGE_KEYS.HIDE_CHARGING].newValue;
+        
+        // 兼容旧版的布尔值配置
         if (typeof newVal === 'boolean') newVal = newVal ? 'hide' : 'off';
         
         currentMode = newVal as string;
+        scanner.updateMode(currentMode);
 
-        // Restart to apply new mode (e.g. switch from hide to mask)
+        // 重启以应用新模式（例如从“隐藏”切换到“遮罩”）
         stop();
         if (currentMode !== 'off') {
           start();
