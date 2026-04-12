@@ -8,7 +8,7 @@ import { BadgeDecorator } from './types';
 export class InfoDecorator implements BadgeDecorator {
     name = 'info';
 
-    async render(element: HTMLElement, cache: any, settings: any) {
+    async render(element: HTMLElement, cache: any, settings: any, titleEl?: HTMLElement | null) {
         const bvid = element.dataset.targetBvid;
         if (!bvid) return;
 

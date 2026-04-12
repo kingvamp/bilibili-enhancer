@@ -7,7 +7,7 @@ import { BadgeDecorator } from './types';
 export class DownloadedDecorator implements BadgeDecorator {
     name = 'downloaded';
 
-    async render(element: HTMLElement, cache: any, settings: any) {
+    async render(element: HTMLElement, cache: any, settings: any, titleEl?: HTMLElement | null) {
         const bvid = element.dataset.targetBvid;
         if (!bvid || !settings.enableDownloaded) return;
 
@@ -26,6 +26,16 @@ export class DownloadedDecorator implements BadgeDecorator {
                 tag.innerText = '已下载';
             }
             element.appendChild(tag);
+
+            // 应用标题高亮
+            if (titleEl) {
+                titleEl.classList.add('bili-title-downloaded');
+            }
+        } else {
+            // 如果未下载，清理可能残余的高亮类
+            if (titleEl) {
+                titleEl.classList.remove('bili-title-downloaded');
+            }
         }
     }
 }

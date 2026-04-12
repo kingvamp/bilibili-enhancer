@@ -8,7 +8,7 @@ import { BadgeDecorator } from './types';
 export class StatusDecorator implements BadgeDecorator {
     name = 'status';
 
-    async render(element: HTMLElement, cache: any, settings: any) {
+    async render(element: HTMLElement, cache: any, settings: any, titleEl?: HTMLElement | null) {
         const bvid = element.dataset.targetBvid;
         if (!bvid || !settings.enableStatus) return;
 
@@ -21,7 +21,13 @@ export class StatusDecorator implements BadgeDecorator {
             if (data) cache.status = data;
         }
 
-        if (!data) return;
+        if (!data) {
+            // 清理可能残余的高亮类
+            if (titleEl) {
+                titleEl.classList.remove('bili-title-favorited', 'bili-title-liked');
+            }
+            return;
+        }
 
         const isFavPage = location.href.includes('medialist') || location.href.includes('favlist') ||
                           !!document.querySelector('.fav-detail') || !!document.querySelector('.fav-info');
@@ -31,6 +37,16 @@ export class StatusDecorator implements BadgeDecorator {
         else if (data.like) type = 'like';
 
         this.updateBadge(element, type, settings.styleMode);
+
+        // 应用标题高亮
+        if (titleEl) {
+            titleEl.classList.remove('bili-title-favorited', 'bili-title-liked');
+            if (type === 'fav') {
+                titleEl.classList.add('bili-title-favorited');
+            } else if (type === 'like') {
+                titleEl.classList.add('bili-title-liked');
+            }
+        }
     }
 
     private updateBadge(element: HTMLElement, type: 'fav' | 'like' | null, styleMode: string) {
