@@ -1,6 +1,7 @@
 import { Module } from '../types';
 import { STORAGE_KEYS } from '../constants';
 import { DownloadHistoryService } from '../services/downloadHistory';
+import { FavoriteService } from '../services/favorite';
 import { ThumbnailRenderer } from './thumbnail/ThumbnailRenderer';
 import { PageScanner } from './thumbnail/PageScanner';
 import { TitleBadgeManager } from './thumbnail/TitleBadge';
@@ -65,6 +66,11 @@ function start() {
     // 监听历史变化 (当其他模块触发下载成功时，自动通知渲染器刷新)
     historyService.subscribe(() => {
         renderer.refreshAll();
+        titleBadge.check();
+    });
+
+    // 监听收藏变化
+    FavoriteService.getInstance().subscribe(() => {
         titleBadge.check();
     });
 

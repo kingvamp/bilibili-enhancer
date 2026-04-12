@@ -1,5 +1,12 @@
 /* thumbnail.css - Bilibili Enhancer 缩略图增强样式 */
 
+:root {
+    --bili-color-fav: #fb7299;
+    --bili-color-fav-bg: #ff6699;
+    --bili-color-download: #10b981;
+    --bili-color-like: #00AEEC;
+}
+
 /* 1. 基础布局适配 */
 .bili-res-badge-parent {
     position: relative !important;
@@ -23,22 +30,37 @@
     border: 1px solid rgba(255,255,255,0.1); line-height: 1.4;
 }
 
-/* 3. 播放页标题角标 */
+/* 3. 播放页标题角标与样式 */
 .bili-downloaded-title-badge {
     display: inline-flex; align-items: center; justify-content: center;
     margin-left: 8px; font-size: 12px; color: #fff;
-    background-color: #10b981;
+    background-color: var(--bili-color-download);
     padding: 0 4px; border-radius: 4px;
     vertical-align: middle; font-weight: normal; height: 18px;
     line-height: 1; position: relative; top: -1px;
 }
 
+.bili-title-favorited {
+    color: var(--bili-color-fav) !important;
+    font-weight: bold !important;
+}
+
+.bili-title-downloaded {
+    color: var(--bili-color-download) !important;
+    font-weight: bold !important;
+}
+
+.bili-title-liked {
+    color: var(--bili-color-like) !important;
+    font-weight: bold !important;
+}
+
 /* 4. 状态角标 (支持文本/三角模式切换) */
 
-/* 共通状态颜色 */
-.tag-fav { --tag-color: #fb7299; --tag-bg: #ff6699; }
-.tag-like { --tag-color: #00AEEC; --tag-bg: #00AEEC; }
-.tag-downloaded { --tag-color: #10b981; --tag-bg: #10b981; }
+/* 共通状态颜色适配 */
+.tag-fav { --tag-color: var(--bili-color-fav); --tag-bg: var(--bili-color-fav-bg); }
+.tag-like { --tag-color: var(--bili-color-like); --tag-bg: var(--bili-color-like); }
+.tag-downloaded { --tag-color: var(--bili-color-download); --tag-bg: var(--bili-color-download); }
 
 /* 文本模式 (默认或根据类名) */
 body.bili-thumb-style-text .my-status-tag {

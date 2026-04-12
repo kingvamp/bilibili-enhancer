@@ -4,6 +4,7 @@ import { ApiService } from './api';
 export class FavoriteService {
     private static instance: FavoriteService;
     private defaultFolderId: string | null = null;
+    private listeners: Set<() => void> = new Set();
 
     private constructor() {
         chrome.storage.local.get([STORAGE_KEYS.DEFAULT_FAV_FOLDER_ID], (res) => {
@@ -87,10 +88,20 @@ export class FavoriteService {
 
         const data = await res.json();
         if (data.code === 0 || data.code === 11007) {
+            this.notify();
             return true;
         } else {
             throw new Error(data.message || `API错误(${data.code})`);
         }
+    }
+
+    public subscribe(callback: () => void) {
+        this.listeners.add(callback);
+        return () => this.listeners.delete(callback);
+    }
+
+    private notify() {
+        this.listeners.forEach(cb => cb());
     }
 
     /**
