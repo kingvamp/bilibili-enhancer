@@ -8,7 +8,7 @@ import { BadgeDecorator } from './types';
 export class StatusDecorator implements BadgeDecorator {
     name = 'status';
 
-    async render(element: HTMLElement, cache: any, settings: any, titleEl?: HTMLElement | null) {
+    async render(element: HTMLElement, cache: any, settings: any, titleEl?: HTMLElement | null, badgeContainer?: HTMLElement | null) {
         const bvid = element.dataset.targetBvid;
         if (!bvid || !settings.enableStatus) return;
 
@@ -36,7 +36,7 @@ export class StatusDecorator implements BadgeDecorator {
         if (data.fav && !isFavPage) type = 'fav';
         else if (data.like) type = 'like';
 
-        this.updateBadge(element, type, settings.styleMode);
+        this.updateBadge(element, type, settings.styleMode, badgeContainer);
 
         // 应用标题高亮
         if (titleEl) {
@@ -49,8 +49,9 @@ export class StatusDecorator implements BadgeDecorator {
         }
     }
 
-    private updateBadge(element: HTMLElement, type: 'fav' | 'like' | null, styleMode: string) {
-        element.querySelectorAll('.my-status-tag:not(.tag-downloaded)').forEach(el => el.remove());
+    private updateBadge(element: HTMLElement, type: 'fav' | 'like' | null, styleMode: string, badgeContainer?: HTMLElement | null) {
+        const container = badgeContainer || element;
+        container.querySelectorAll('.my-status-tag:not(.tag-downloaded)').forEach(el => el.remove());
         if (!type) return;
 
         // 仅在明确标记为需要显示角标的元素（如缩略图）上添加浮动标
@@ -60,7 +61,7 @@ export class StatusDecorator implements BadgeDecorator {
             if (styleMode === 'text') {
                 tag.innerText = type === 'fav' ? '已收藏' : '已点赞';
             }
-            element.appendChild(tag);
+            container.appendChild(tag);
         }
     }
 }

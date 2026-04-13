@@ -1,5 +1,5 @@
 import { BadgeDecorator } from './plugins';
-import { findTitleInCard, findClosestVideoCard } from '../../utils/dom';
+import { findTitleInCard, findClosestVideoCard, findCoverInElement } from '../../utils/dom';
 
 export class ThumbnailRenderer {
     private decorators: BadgeDecorator[] = [];
@@ -29,6 +29,7 @@ export class ThumbnailRenderer {
         this.queue.push({ bvid, element });
         this.startProcessing();
     }
+
     public refreshAll() {
         const processed = document.querySelectorAll('a[data-bili-enhanced-processed="true"]');
         processed.forEach(el => {
@@ -58,21 +59,26 @@ export class ThumbnailRenderer {
 
         const card = findClosestVideoCard(element) || element;
         const titleEl = findTitleInCard(card, bvid);
+        const coverEl = findCoverInElement(card) || findCoverInElement(element);
 
         if (!titleEl) return;
+
+        // 准备角标容器样式
+        if (coverEl) {
+            coverEl.classList.add('bili-res-badge-parent');
+        }
 
         // 执行异步/延迟装饰器
         const deferred = this.decorators.filter(d => !d.isInstant);
         for (const decorator of deferred) {
             // 双重检查：如果已经标记为已下载，则跳过后续网络任务（收藏/分辨率）
-            // 注意：bili-title-downloaded 类名可能由即时渲染阶段添加
             const isDownloaded = titleEl.classList.contains('bili-title-downloaded');
             if (isDownloaded && (decorator.name === 'status' || decorator.name === 'info')) {
                 continue;
             }
             
             try {
-                await decorator.render(element, videoCache, this.settings, titleEl);
+                await decorator.render(element, videoCache, this.settings, titleEl, coverEl);
             } catch (e) {
                 console.error(`[ThumbnailRenderer] Decorator ${decorator.name} failed:`, e);
             }
@@ -85,15 +91,21 @@ export class ThumbnailRenderer {
 
         const card = findClosestVideoCard(element) || element;
         const titleEl = findTitleInCard(card, bvid);
+        const coverEl = findCoverInElement(card) || findCoverInElement(element);
 
         if (titleEl) {
             // 在开始渲染前，清理所有可能的状态类，保证状态唯一性
             titleEl.classList.remove('bili-title-downloaded', 'bili-title-favorited', 'bili-title-liked');
         }
 
+        // 准备角标容器样式
+        if (coverEl) {
+            coverEl.classList.add('bili-res-badge-parent');
+        }
+
         const instants = this.decorators.filter(d => d.isInstant);
         for (const decorator of instants) {
-            await decorator.render(element, videoCache, this.settings, titleEl);
+            await decorator.render(element, videoCache, this.settings, titleEl, coverEl);
         }
     }
 }

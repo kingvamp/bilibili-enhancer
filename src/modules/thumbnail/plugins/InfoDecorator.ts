@@ -8,7 +8,7 @@ import { BadgeDecorator } from './types';
 export class InfoDecorator implements BadgeDecorator {
     name = 'info';
 
-    async render(element: HTMLElement, cache: any, settings: any, titleEl?: HTMLElement | null) {
+    async render(element: HTMLElement, cache: any, settings: any, titleEl?: HTMLElement | null, badgeContainer?: HTMLElement | null) {
         const bvid = element.dataset.targetBvid;
         if (!bvid) return;
 
@@ -26,8 +26,11 @@ export class InfoDecorator implements BadgeDecorator {
 
         if (!data) return;
 
+        // 确定最终角标挂载点
+        const container = badgeContainer || element;
+
         // 2. 渲染分辨率
-        const existingRes = element.querySelector('.bili-res-badge');
+        const existingRes = container.querySelector('.bili-res-badge');
         if (existingRes) existingRes.remove();
         if (settings.enableRes && data.resolution) {
             // 仅在明确标记为需要显示角标的元素（如缩略图）上添加浮动标
@@ -35,12 +38,12 @@ export class InfoDecorator implements BadgeDecorator {
                 const badge = document.createElement('div');
                 badge.className = `bili-res-badge ${data.resolution.class}`;
                 badge.innerText = data.resolution.text;
-                element.appendChild(badge);
+                container.appendChild(badge);
             }
         }
 
         // 3. 渲染分P数
-        const existingPCount = element.querySelector('.bili-p-count');
+        const existingPCount = container.querySelector('.bili-p-count');
         if (existingPCount) existingPCount.remove();
         if (settings.enablePCount && data.pageCount > 1) {
             // 仅在明确标记为需要显示角标的元素（如缩略图）上添加浮动标
@@ -48,7 +51,7 @@ export class InfoDecorator implements BadgeDecorator {
                 const badge = document.createElement('div');
                 badge.className = 'bili-p-count';
                 badge.innerText = data.pageCount + 'P';
-                element.appendChild(badge);
+                container.appendChild(badge);
             }
         }
     }

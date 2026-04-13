@@ -28,7 +28,6 @@ export class PageScanner {
                             const rect = cover.getBoundingClientRect();
                             if (rect.width > 20 && rect.height > 20) { // 稍微放宽一点限制，20px 足够了
                                 el.dataset.showBadge = "true";
-                                el.classList.add('bili-res-badge-parent'); 
                             }
                         }
 
