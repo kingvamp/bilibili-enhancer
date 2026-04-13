@@ -116,7 +116,7 @@ export const SELECTORS = {
     // 扫描与排除区域
     SCANNER: {
         // 基础视频链接
-        VIDEO_LINK: 'a[href*="/video/BV"]',
+        VIDEO_LINK: 'a[href*="/video/BV"], a[href*="bvid=BV"]',
         // 带有 BV 号数据的元素 (如稍后再玩列表)
         DATA_KEY_BV: '[data-key^="BV"]',
         // 需要排除扫描的区域 (即：完全不可能包含感兴趣视频链接的区域，如导航栏、弹窗、头部)

@@ -80,7 +80,7 @@ function start() {
             });
             scanner.start();
             titleBadge.check();
-        }, 1000); // 延迟 1 秒后应用高亮
+        }, 50); // 延迟后应用高亮
     });
 }
 
