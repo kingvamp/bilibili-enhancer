@@ -20,10 +20,15 @@ export class ThumbnailRenderer {
      */
     public enqueue(element: HTMLElement, bvid: string) {
         if (this.queue.some(q => q.element === element)) return;
+
+        // 1. 第一阶段：即时渲染 (同步/本地数据)
+        // 确保本地状态（如：已下载变色）能够瞬间响应，不进并发队列
+        this.renderInstant(element, bvid);
+
+        // 2. 第二阶段：进队列排队处理异步/网络任务
         this.queue.push({ bvid, element });
         this.startProcessing();
     }
-
     public refreshAll() {
         const processed = document.querySelectorAll('a[data-bili-enhanced-processed="true"]');
         processed.forEach(el => {
@@ -51,22 +56,44 @@ export class ThumbnailRenderer {
         if (!this.cache.has(bvid)) this.cache.set(bvid, {});
         const videoCache = this.cache.get(bvid);
 
-        // 先寻找最近的卡片容器，然后再从容器中寻找标题
         const card = findClosestVideoCard(element) || element;
         const titleEl = findTitleInCard(card, bvid);
-        
-        // 清理旧的状态类，防止多个类并存导致优先级混乱
-        if (titleEl) {
-            titleEl.classList.remove('bili-title-downloaded', 'bili-title-favorited', 'bili-title-liked');
-        }
 
-        // 串行执行针对同一个元素的不同装饰器，确保逻辑顺序（如：已下载标覆盖其他标）
-        for (const decorator of this.decorators) {
+        if (!titleEl) return;
+
+        // 执行异步/延迟装饰器
+        const deferred = this.decorators.filter(d => !d.isInstant);
+        for (const decorator of deferred) {
+            // 双重检查：如果已经标记为已下载，则跳过后续网络任务（收藏/分辨率）
+            // 注意：bili-title-downloaded 类名可能由即时渲染阶段添加
+            const isDownloaded = titleEl.classList.contains('bili-title-downloaded');
+            if (isDownloaded && (decorator.name === 'status' || decorator.name === 'info')) {
+                continue;
+            }
+            
             try {
                 await decorator.render(element, videoCache, this.settings, titleEl);
             } catch (e) {
                 console.error(`[ThumbnailRenderer] Decorator ${decorator.name} failed:`, e);
             }
+        }
+    }
+
+    private async renderInstant(element: HTMLElement, bvid: string) {
+        if (!this.cache.has(bvid)) this.cache.set(bvid, {});
+        const videoCache = this.cache.get(bvid);
+
+        const card = findClosestVideoCard(element) || element;
+        const titleEl = findTitleInCard(card, bvid);
+
+        if (titleEl) {
+            // 在开始渲染前，清理所有可能的状态类，保证状态唯一性
+            titleEl.classList.remove('bili-title-downloaded', 'bili-title-favorited', 'bili-title-liked');
+        }
+
+        const instants = this.decorators.filter(d => d.isInstant);
+        for (const decorator of instants) {
+            await decorator.render(element, videoCache, this.settings, titleEl);
         }
     }
 }

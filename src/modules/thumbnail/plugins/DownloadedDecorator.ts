@@ -6,6 +6,7 @@ import { BadgeDecorator } from './types';
  */
 export class DownloadedDecorator implements BadgeDecorator {
     name = 'downloaded';
+    isInstant = true;
 
     async render(element: HTMLElement, cache: any, settings: any, titleEl?: HTMLElement | null) {
         const bvid = element.dataset.targetBvid;
@@ -20,14 +21,17 @@ export class DownloadedDecorator implements BadgeDecorator {
             // 已下载时，移除“已点赞/已收藏”角标（如果存在），因为下载标优先级最高
             element.querySelectorAll('.my-status-tag:not(.tag-downloaded)').forEach(el => el.remove());
 
-            const tag = document.createElement('div');
-            tag.className = 'my-status-tag tag-downloaded';
-            if (settings.styleMode === 'text') {
-                tag.innerText = '已下载';
+            // 仅在明确标记为需要显示角标的元素（如缩略图）上添加浮动标
+            if (element.dataset.showBadge === 'true') {
+                const tag = document.createElement('div');
+                tag.className = 'my-status-tag tag-downloaded';
+                if (settings.styleMode === 'text') {
+                    tag.innerText = '已下载';
+                }
+                element.appendChild(tag);
             }
-            element.appendChild(tag);
 
-            // 应用标题高亮
+            // 应用标题高亮 (无论是否显示角标，只要匹配就高亮标题)
             if (titleEl) {
                 titleEl.classList.add('bili-title-downloaded');
             }

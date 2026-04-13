@@ -30,20 +30,26 @@ export class InfoDecorator implements BadgeDecorator {
         const existingRes = element.querySelector('.bili-res-badge');
         if (existingRes) existingRes.remove();
         if (settings.enableRes && data.resolution) {
-            const badge = document.createElement('div');
-            badge.className = `bili-res-badge ${data.resolution.class}`;
-            badge.innerText = data.resolution.text;
-            element.appendChild(badge);
+            // 仅在明确标记为需要显示角标的元素（如缩略图）上添加浮动标
+            if (element.dataset.showBadge === 'true') {
+                const badge = document.createElement('div');
+                badge.className = `bili-res-badge ${data.resolution.class}`;
+                badge.innerText = data.resolution.text;
+                element.appendChild(badge);
+            }
         }
 
         // 3. 渲染分P数
         const existingPCount = element.querySelector('.bili-p-count');
         if (existingPCount) existingPCount.remove();
         if (settings.enablePCount && data.pageCount > 1) {
-            const badge = document.createElement('div');
-            badge.className = 'bili-p-count';
-            badge.innerText = data.pageCount + 'P';
-            element.appendChild(badge);
+            // 仅在明确标记为需要显示角标的元素（如缩略图）上添加浮动标
+            if (element.dataset.showBadge === 'true') {
+                const badge = document.createElement('div');
+                badge.className = 'bili-p-count';
+                badge.innerText = data.pageCount + 'P';
+                element.appendChild(badge);
+            }
         }
     }
 }

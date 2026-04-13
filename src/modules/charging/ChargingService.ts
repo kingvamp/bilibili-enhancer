@@ -28,6 +28,9 @@ export class ChargingService {
   private static instance: ChargingService;
   private safeSet = new Set<string>();
   private chargingSet = new Set<string>();
+  private isBlocked = false;
+  private cooldownTimer: number | null = null;
+  private onBlockListeners: (() => void)[] = [];
 
   private constructor() {
     this.loadCache();
@@ -38,6 +41,30 @@ export class ChargingService {
       ChargingService.instance = new ChargingService();
     }
     return ChargingService.instance;
+  }
+
+  public onBlock(callback: () => void) {
+    this.onBlockListeners.push(callback);
+  }
+
+  private triggerBlock() {
+    if (this.isBlocked) return;
+    this.isBlocked = true;
+    console.warn('[ChargingService] Risk control triggered (412). Entering cooldown.');
+    
+    this.onBlockListeners.forEach(cb => cb());
+
+    // 10 分钟后自动解除封号重试
+    if (this.cooldownTimer) window.clearTimeout(this.cooldownTimer);
+    this.cooldownTimer = window.setTimeout(() => {
+      this.isBlocked = false;
+      this.cooldownTimer = null;
+      console.log('[ChargingService] Cooldown ended. Resuming API checks.');
+    }, 10 * 60 * 1000);
+  }
+
+  public isCoolingDown(): boolean {
+    return this.isBlocked;
   }
 
   private loadCache(): void {
@@ -78,12 +105,28 @@ export class ChargingService {
    * @returns true if the video is "Charging Exclusive", false otherwise.
    */
   public async checkChargingStatus(bvid: string): Promise<boolean> {
+    if (this.isBlocked) return false;
     if (this.chargingSet.has(bvid)) return true;
     if (this.safeSet.has(bvid)) return false;
 
     try {
       const res = await fetch(`https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`);
-      const json: BiliApiResponse = await res.json();
+      
+      if (res.status === 412) {
+        this.triggerBlock();
+        return false;
+      }
+
+      const text = await res.text();
+      let json: BiliApiResponse;
+      try {
+        json = JSON.parse(text);
+      } catch (e) {
+        if (text.includes('<!DOCTYPE html>')) {
+          this.triggerBlock();
+        }
+        return false;
+      }
 
       if (json?.code === 0 && json.data) {
         const d = json.data;
@@ -110,7 +153,7 @@ export class ChargingService {
       return false;
     } catch (e) {
       console.warn(`[ChargingService] Failed to check status for ${bvid}`, e);
-      throw e; // Let the caller handle retries
+      return false;
     }
   }
 }

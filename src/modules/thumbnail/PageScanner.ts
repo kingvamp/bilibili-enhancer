@@ -17,15 +17,27 @@ export class PageScanner {
         this.viewportObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    const link = entry.target as HTMLElement;
-                    const bvid = link.dataset.targetBvid;
+                    const el = entry.target as HTMLElement;
+                    const bvid = el.dataset.targetBvid;
+                    
                     if (bvid) {
-                        this.onDiscover(link, bvid);
-                        this.viewportObserver?.unobserve(link);
+                        // 在进入视口时进行最终的“显著性”检查
+                        // 这样可以确保动态加载的元素已经有了物理尺寸
+                        const cover = findCoverInElement(el);
+                        if (cover) {
+                            const rect = cover.getBoundingClientRect();
+                            if (rect.width > 20 && rect.height > 20) { // 稍微放宽一点限制，20px 足够了
+                                el.dataset.showBadge = "true";
+                                el.classList.add('bili-res-badge-parent'); 
+                            }
+                        }
+
+                        this.onDiscover(el, bvid);
+                        this.viewportObserver?.unobserve(el);
                     }
                 }
             });
-        }, { rootMargin: "100px" });
+        }, { rootMargin: "150px" }); // 稍微增加预加载范围
 
         this.scan();
 
@@ -52,24 +64,19 @@ export class PageScanner {
             const anchor = link as HTMLAnchorElement;
             if (anchor.dataset.biliEnhancedProcessed) return;
 
-            // 过滤掉非封面区域 (如头部的用户中心、或者是文字标题)
+            // 过滤掉非视频区域 (如顶栏)
             if (isInsideExcludedArea(anchor)) return;
-
-            // 寻找封面图元素
-            const hasImg = findCoverInElement(anchor);
-            if (!hasImg) return;
 
             const bvid = extractBvid(anchor.href);
             if (bvid) {
                 anchor.dataset.biliEnhancedProcessed = "true";
                 anchor.dataset.targetBvid = bvid;
-                anchor.classList.add('bili-res-badge-parent'); 
                 
                 this.viewportObserver?.observe(anchor);
             }
         });
 
-        // 2. 扫描具有 data-key="BV..." 的元素 (如稍后再看列表)
+        // 2. 扫描具有 data-key="BV..." 的元素 (如稍后再玩列表)
         const itemsWithKey = document.querySelectorAll(SELECTORS.SCANNER.DATA_KEY_BV);
         itemsWithKey.forEach(item => {
             const element = item as HTMLElement;
@@ -77,17 +84,10 @@ export class PageScanner {
 
             const bvid = element.dataset.key;
             if (bvid && bvid.startsWith('BV')) {
-                // 标记封面区域作为徽章父级，稍后再看列表中的类名通常是 .cover
-                const target = findCoverInElement(element) || element;
-                const targetEl = target as HTMLElement;
+                element.dataset.biliEnhancedProcessed = "true";
+                element.dataset.targetBvid = bvid;
                 
-                if (targetEl.dataset.biliEnhancedProcessed) return;
-
-                targetEl.dataset.biliEnhancedProcessed = "true";
-                targetEl.dataset.targetBvid = bvid;
-                targetEl.classList.add('bili-res-badge-parent');
-                
-                this.viewportObserver?.observe(targetEl);
+                this.viewportObserver?.observe(element);
             }
         });
     }

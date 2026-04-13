@@ -87,9 +87,10 @@ function handleMouseOver(e: MouseEvent) {
     if (!isRunning) return;
     
     const target = e.target as HTMLElement;
-    // 屏蔽区域
-    const isForbiddenZone = target.closest(SELECTORS.SCANNER.EXCLUDED_AREAS.join(', '));
-    if (isForbiddenZone) return;
+    // 屏蔽已经有大封面的区域，以及全局导航排除区
+    const isExcluded = target.closest(SELECTORS.SCANNER.EXCLUDED_AREAS.join(', '));
+    const isAlreadyCovered = target.closest(SELECTORS.SCANNER.PREVIEW_BLOCKERS.join(', '));
+    if (isExcluded || isAlreadyCovered) return;
 
     let bvid: string | null = null;
     let targetElement: HTMLElement | null = null;

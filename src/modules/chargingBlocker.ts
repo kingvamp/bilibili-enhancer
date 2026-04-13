@@ -24,6 +24,12 @@ const scanner = new ChargingScanner(service, ui, currentMode);
  */
 function start(): void {
   ui.injectStyle();
+  
+  // 订阅封号/风控事件
+  service.onBlock(() => {
+    ui.showToast('已触发 B 站风控，充电视频拦截部分功能将暂停 10 分钟以保护账号安全。');
+  });
+
   scanner.start();
 }
 

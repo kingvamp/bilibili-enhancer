@@ -15,6 +15,14 @@ const MASK_CSS = `
     color: #fb7299; font-size: 13px; font-weight: bold;
     pointer-events: auto; cursor: not-allowed;
 }
+.gemini-toast {
+    position: fixed; top: 20px; right: 20px; padding: 12px 20px;
+    background: #ff4d4f; color: white; border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 99999;
+    font-size: 14px; display: flex; align-items: center; gap: 10px;
+    animation: gemini-fade-in 0.3s ease;
+}
+@keyframes gemini-fade-in { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 `;
 
 export class ChargingUI {
@@ -26,6 +34,19 @@ export class ChargingUI {
     this.styleEl.id = 'gemini-charging-style';
     this.styleEl.textContent = MASK_CSS;
     document.head.appendChild(this.styleEl);
+  }
+
+  public showToast(message: string) {
+    const toast = document.createElement('div');
+    toast.className = 'gemini-toast';
+    toast.innerHTML = `<span>⚠️</span> <span>${message}</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-20px)';
+        setTimeout(() => toast.remove(), 500);
+    }, 5000);
   }
 
   public removeStyle() {

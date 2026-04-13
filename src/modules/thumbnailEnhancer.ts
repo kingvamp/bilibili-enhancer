@@ -6,6 +6,7 @@ import { ThumbnailRenderer } from './thumbnail/ThumbnailRenderer';
 import { PageScanner } from './thumbnail/PageScanner';
 import { TitleBadgeManager } from './thumbnail/TitleBadge';
 import { InfoDecorator, StatusDecorator, DownloadedDecorator } from './thumbnail/plugins';
+import { showToast } from '../utils/toast';
 
 interface ThumbnailSettings {
     enableStatus: boolean;
@@ -50,17 +51,19 @@ function start() {
     scanner = new PageScanner((el: HTMLElement, bvid: string) => {
         renderer.enqueue(el, bvid);
     });
-    scanner.start();
+
 
     // 3. 初始化标题标
     titleBadge = new TitleBadgeManager(settings);
-    titleBadge.check();
 
     // 4. 获取下载历史并开启监听
     const historyService = DownloadHistoryService.getInstance();
     historyService.refresh().then(() => {
-        renderer.refreshAll();
-        titleBadge.check();
+        setTimeout(() => {
+            showToast('视频增强模块加载完成');
+            // scanner.start();
+            titleBadge.check();
+        }, 2000); // 延迟 2 秒后应用高亮
     });
 
     // 监听历史变化 (当其他模块触发下载成功时，自动通知渲染器刷新)
@@ -115,11 +118,11 @@ export const ThumbnailEnhancerModule: Module = {
         // 监听存储变化，动态开关功能
         chrome.storage.onChanged.addListener((changes) => {
             const keys = [
-                STORAGE_KEYS.THUMB_STATUS, STORAGE_KEYS.THUMB_RES, 
+                STORAGE_KEYS.THUMB_STATUS, STORAGE_KEYS.THUMB_RES,
                 STORAGE_KEYS.THUMB_PCOUNT, STORAGE_KEYS.THUMB_DOWNLOADED,
                 STORAGE_KEYS.THUMB_STYLE
             ];
-            
+
             if (keys.some(k => changes[k])) {
                 if (changes[STORAGE_KEYS.THUMB_STATUS]) settings.enableStatus = changes[STORAGE_KEYS.THUMB_STATUS].newValue as boolean;
                 if (changes[STORAGE_KEYS.THUMB_RES]) settings.enableRes = changes[STORAGE_KEYS.THUMB_RES].newValue as boolean;
@@ -133,8 +136,8 @@ export const ThumbnailEnhancerModule: Module = {
                 if (!isRunning && (settings.enableStatus || settings.enableRes || settings.enablePCount || settings.enableDownloaded)) {
                     start();
                 } else if (isRunning) {
-                   renderer.refreshAll();
-                   titleBadge.check();
+                    renderer.refreshAll();
+                    titleBadge.check();
                 }
             }
         });

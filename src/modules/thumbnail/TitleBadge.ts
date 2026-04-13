@@ -1,6 +1,7 @@
 import { DownloadHistoryService } from '../../services/downloadHistory';
 import { FavoriteService } from '../../services/favorite';
 import { ApiService } from '../../services/api';
+import { SELECTORS } from '../../constants/selectors';
 
 /**
  * 专门处理视频详情页标题后的“已下载”角标及标题样式高亮
@@ -15,7 +16,8 @@ export class TitleBadgeManager {
         const bvid = this.extractBvid(location.href);
         if (!bvid) return;
 
-        const titleEl = document.querySelector('.video-title') as HTMLElement || document.querySelector('.tit') as HTMLElement;
+        const mainTitleSelectors = SELECTORS.PLAY_PAGE.MAIN_VIDEO_TITLE.join(', ');
+        const titleEl = document.querySelector(mainTitleSelectors) as HTMLElement;
         if (!titleEl) return;
 
         // 1. 处理“已下载”角标 (仅当开启了该设置时)

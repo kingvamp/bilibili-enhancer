@@ -86,6 +86,15 @@ export const SELECTORS = {
 
     // 播放页相关
     PLAY_PAGE: {
+        // 主视频标题
+        MAIN_VIDEO_TITLE: [
+            '.video-info-container .video-title',
+            '.video-info-container .video-info-title-inner',
+            '.v-title h1',
+            '.left-container .tit',
+            '.video-info-title-inner',
+            '.video-title'
+        ],
         // 工具栏左侧区域
         TOOLBAR_LEFT: [
             '.video-toolbar-left',
@@ -106,17 +115,22 @@ export const SELECTORS = {
         VIDEO_LINK: 'a[href*="/video/BV"]',
         // 带有 BV 号数据的元素 (如稍后再玩列表)
         DATA_KEY_BV: '[data-key^="BV"]',
-        // 需要排除扫描的区域 (防止在非视频区域误触)
+        // 需要排除扫描的区域 (即：完全不可能包含感兴趣视频链接的区域，如导航栏、弹窗、头部)
         EXCLUDED_AREAS: [
             '.bili-header',
             '.mini-header',
             '.user-card',
             '.v-popover-content',
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-            '.title',
-            '.info > .tit',
+            '.nav-menu',
+            '.international-footer'
+        ],
+        // 封面预览屏蔽区域 (即：已经有封面图的区域，不需要额外弹出预览)
+        PREVIEW_BLOCKERS: [
+            '.bili-video-card',
+            '.video-item',
+            '.recommend-list',
             '.rec-list',
-            '.recommend-list'
+            '.card-box'
         ]
     },
 

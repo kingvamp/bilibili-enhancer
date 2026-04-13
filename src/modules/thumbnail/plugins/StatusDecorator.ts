@@ -53,11 +53,14 @@ export class StatusDecorator implements BadgeDecorator {
         element.querySelectorAll('.my-status-tag:not(.tag-downloaded)').forEach(el => el.remove());
         if (!type) return;
 
-        const tag = document.createElement('div');
-        tag.className = `my-status-tag tag-${type}`;
-        if (styleMode === 'text') {
-            tag.innerText = type === 'fav' ? '已收藏' : '已点赞';
+        // 仅在明确标记为需要显示角标的元素（如缩略图）上添加浮动标
+        if (element.dataset.showBadge === 'true') {
+            const tag = document.createElement('div');
+            tag.className = `my-status-tag tag-${type}`;
+            if (styleMode === 'text') {
+                tag.innerText = type === 'fav' ? '已收藏' : '已点赞';
+            }
+            element.appendChild(tag);
         }
-        element.appendChild(tag);
     }
 }
