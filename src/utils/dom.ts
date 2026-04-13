@@ -35,7 +35,15 @@ export function findTitleInCard(card: HTMLElement, bvid?: string): HTMLElement |
 
     // 2. 优先通过标题选择器查找
     const title = card.querySelector(titleSelectors);
-    if (title) return title as HTMLElement;
+    if (title) {
+        // 核心优化：如果找到的是一个容器（如 div），且内部只有一个 a 标签且包含文字
+        // 则优先返回该 a 标签，这样样式可以直接应用在文字载体上，避免被 B 站原生样式覆盖
+        const links = title.querySelectorAll('a');
+        if (links.length === 1 && links[0].innerText.trim().length > 0) {
+            return links[0] as HTMLElement;
+        }
+        return title as HTMLElement;
+    }
 
     // 2. 兜底逻辑：在容器内寻找匹配 BV 号且包含文字的链接
     if (bvid) {

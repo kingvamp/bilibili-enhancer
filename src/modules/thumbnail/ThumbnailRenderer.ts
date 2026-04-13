@@ -83,8 +83,9 @@ export class ThumbnailRenderer {
             }
         }
 
-        // 写入存活标记，用于 PageScanner 检测 B 站重绘
-        addMarker(targetContainer);
+        // 写入存活标记到卡片容器，用于 PageScanner 检测 B 站重绘
+        // 将标记移至卡片级别，确保当标题等子区域重绘时，能更有效地触发重新发现逻辑
+        addMarker(card);
     }
 
     private async renderInstant(element: HTMLElement, bvid: string) {
@@ -108,7 +109,7 @@ export class ThumbnailRenderer {
             await decorator.render(element, videoCache, this.settings, titleEl, targetContainer);
         }
 
-        // 即时渲染也要写入标记
-        addMarker(targetContainer);
+        // 即时渲染也要写入标记到卡片级
+        addMarker(card);
     }
 }

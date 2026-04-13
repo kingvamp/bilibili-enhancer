@@ -29,11 +29,7 @@ export const SELECTORS = {
             '.list-item',
             '.card-box',
             '.action-list-item',
-            '.action-list-item-wrap',
-            '[class*="video-card"]',
-            '[class*="VideoCard"]',
-            '[class*="card-box"]',
-            '[class*="action-list-item"]'
+            '.action-list-item-wrap'
         ],
         // 外部包裹容器 (用于隐藏/间距控制)
         WRAPPERS: [
@@ -55,6 +51,8 @@ export const SELECTORS = {
         // 视频标题选择器
         TITLE: [
             '.bili-video-card__info--tit',
+            '.bili-video-card__title',
+            '.upload-video-card__title',
             '.title',
             '.t',
             '.tit',
@@ -66,6 +64,7 @@ export const SELECTORS = {
         COVER: [
             '.pic',
             '.cover',
+            '.bili-cover-card',
             '.bili-video-card__cover',
             '.bili-video-card__image--link',
             '.bili-video-card__image--cover',

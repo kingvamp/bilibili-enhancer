@@ -68,11 +68,10 @@ export class PageScanner {
             // 如果 B 站进行了一次大的重渲染，虽然外层 Anchor 还在，但内部可能已经被清空了
             if (anchor.dataset.biliEnhancedProcessed) {
                 const card = findClosestVideoCard(anchor) || anchor;
-                const cover = findCoverInElement(card) || findCoverInElement(anchor);
-                const target = cover || anchor;
-                if (hasMarker(target)) return;
+                const markerExists = hasMarker(card);
+                if (markerExists) return;
                 
-                // 标记不在了，移除 processed 状态重新发现
+                // 标记（在卡片上）不在了，说明卡片可能整体或部分重绘了，移除 processed 状态以重新发现
                 delete anchor.dataset.biliEnhancedProcessed;
             }
 

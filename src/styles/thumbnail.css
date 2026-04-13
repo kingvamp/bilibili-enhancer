@@ -40,17 +40,39 @@
     line-height: 1; position: relative; top: -1px;
 }
 
-.bili-title-favorited, .bili-title-favorited * {
+/* 状态高亮 (强制覆盖 B 站原生样式) */
+.bili-title-favorited,
+.bili-title-favorited *,
+body .bili-title-favorited, 
+body .bili-title-favorited a,
+body .bili-title-favorited h1,
+body .bili-title-favorited .video-title {
     color: var(--bili-color-fav) !important;
     font-weight: bold !important;
 }
 
-.bili-title-downloaded, .bili-title-downloaded * {
+.bili-title-downloaded,
+.bili-title-downloaded *,
+body .bili-title-downloaded, 
+body .bili-title-downloaded a,
+body .bili-title-downloaded h1,
+body .bili-title-downloaded .video-title {
     color: var(--bili-color-download) !important;
     font-weight: bold !important;
 }
 
-.bili-title-liked, .bili-title-liked * {
+/* 排除角标文字颜色被覆盖 */
+.bili-title-downloaded .bili-downloaded-title-badge,
+.bili-title-downloaded .bili-downloaded-title-badge * {
+    color: #fff !important;
+}
+
+.bili-title-liked,
+.bili-title-liked *,
+body .bili-title-liked, 
+body .bili-title-liked a,
+body .bili-title-liked h1,
+body .bili-title-liked .video-title {
     color: var(--bili-color-like) !important;
     font-weight: bold !important;
 }
