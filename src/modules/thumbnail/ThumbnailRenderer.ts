@@ -1,5 +1,5 @@
 import { BadgeDecorator } from './plugins';
-import { findTitleInCard, findClosestVideoCard, findCoverInElement } from '../../utils/dom';
+import { findTitleInCard, findClosestVideoCard, findCoverInElement, ensureLayeredContext } from '../../utils/dom';
 
 export class ThumbnailRenderer {
     private decorators: BadgeDecorator[] = [];
@@ -65,7 +65,7 @@ export class ThumbnailRenderer {
 
         // 准备角标容器样式
         if (coverEl) {
-            coverEl.classList.add('bili-res-badge-parent');
+            ensureLayeredContext(coverEl);
         }
 
         // 执行异步/延迟装饰器
@@ -100,7 +100,7 @@ export class ThumbnailRenderer {
 
         // 准备角标容器样式
         if (coverEl) {
-            coverEl.classList.add('bili-res-badge-parent');
+            ensureLayeredContext(coverEl);
         }
 
         const instants = this.decorators.filter(d => d.isInstant);

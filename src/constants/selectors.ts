@@ -62,14 +62,19 @@ export const SELECTORS = {
             '.video-title-href',
             'h3'
         ],
-        // 封面图选择器
+        // 封面图选择器 (优先匹配容器类，避免直接匹配 img)
         COVER: [
-            'img',
-            'picture',
+            '.pic',
             '.cover',
             '.bili-video-card__cover',
+            '.bili-video-card__image--link',
+            '.bili-video-card__image--cover',
             '.b-link-cover',
-            '.b-img'
+            '.b-img',
+            '.img-anchor',
+            '.lazy-img',
+            'picture',
+            'img'
         ],
         // 视频时长标签
         DURATION: [

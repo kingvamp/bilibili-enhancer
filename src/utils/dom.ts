@@ -62,14 +62,49 @@ export function isInsideExcludedArea(element: HTMLElement): boolean {
 }
 
 /**
- * 在基础元素内查找封面图（图片或特定类名的元素）
+ * 在基础元素内查找封面图容器 (必须返回可以包含子元素的容器，不能直接返回 img)
  */
 export function findCoverInElement(element: HTMLElement): HTMLElement | null {
-    // 检查元素自身是否就是封面容器
-    if (SELECTORS.VIDEO_CARD.COVER.some(s => s.startsWith('.') && element.classList.contains(s.slice(1)))) {
-        return element;
+    const coverSelectors = SELECTORS.VIDEO_CARD.COVER;
+
+    // 1. 优先查找容器类 (排除 img 和 picture)
+    for (const s of coverSelectors) {
+        if (s === 'img' || s === 'picture') continue;
+        const found = element.querySelector(s);
+        if (found) return found as HTMLElement;
+        
+        // 检查元素自身是否就是该容器
+        if (s.startsWith('.') && element.classList.contains(s.slice(1))) {
+            return element;
+        }
     }
-    return element.querySelector(SELECTORS.VIDEO_CARD.COVER.join(', '));
+
+    // 2. 尝试寻找通用的图片包装类 (B 站常用的布局类)
+    const commonWrappers = element.querySelector('[class*="cover"], [class*="image"], [class*="thumb"], [class*="pic"]');
+    if (commonWrappers && commonWrappers.tagName !== 'IMG' && commonWrappers.tagName !== 'PICTURE') {
+        return commonWrappers as HTMLElement;
+    }
+
+    // 3. 兜底：寻找图片标签，并返回其父级作为容器
+    const img = element.querySelector('img, picture');
+    if (img && img.parentElement && img.parentElement !== element) {
+        return img.parentElement as HTMLElement;
+    }
+
+    return null;
+}
+
+/**
+ * 确保元素具有层叠上下文（用于定位角标），同时不破坏 B 站原有的布局
+ */
+export function ensureLayeredContext(element: HTMLElement) {
+    const style = window.getComputedStyle(element);
+    if (style.position === 'static') {
+        element.style.position = 'relative';
+    }
+    // 注意：如果元素已经是 absolute 或 relative，我们绝对不要改动它或加 !important
+    // 同时也保持高度兼容性
+    element.classList.add('bili-res-badge-parent');
 }
 
 /**

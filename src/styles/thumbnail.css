@@ -9,8 +9,8 @@
 
 /* 1. 基础布局适配 */
 .bili-res-badge-parent {
-    position: relative !important;
-    overflow: visible !important;
+    /* position: relative;  由 JS 根据 getComputedStyle 动态决定，避免破坏 B 站原有 absolute 占位布局 */
+    overflow: visible;
 }
 
 /* 2. 分辨率与分P数 (固定样式) */
