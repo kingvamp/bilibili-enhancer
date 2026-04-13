@@ -67,7 +67,7 @@ function start() {
             const titleTag = document.querySelector('title');
             if (titleTag) {
                 new MutationObserver(() => {
-                    // refreshAll('二级导航切换');
+                    refreshAll('二级导航切换');
                 }).observe(titleTag, { childList: true });
             }
             // 监听历史变化 (当其他模块触发下载成功时，自动通知渲染器刷新)
@@ -81,7 +81,12 @@ function start() {
                 titleBadge.check();
             });
             scanner.start();
-            titleBadge.check();
+
+            // 播放页延迟初始化，避开 B 站初始加载时的 DOM 震动
+            const isVideoPage = location.pathname.startsWith('/video/') || location.pathname.startsWith('/list/');
+            setTimeout(() => {
+                titleBadge.check();
+            }, isVideoPage ? 1500 : 0);
         }, 0); // 延迟后应用高亮
     });
 }

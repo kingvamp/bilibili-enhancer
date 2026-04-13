@@ -20,6 +20,10 @@ export class TitleBadgeManager {
         const titleEl = document.querySelector(mainTitleSelectors) as HTMLElement;
         if (!titleEl) return;
 
+        // 排除 Header 等干扰区域
+        const excludedSelectors = SELECTORS.SCANNER.EXCLUDED_AREAS.join(', ');
+        if (titleEl.closest(excludedSelectors)) return;
+
         // 1. 处理“已下载”角标 (仅当开启了该设置时)
         if (this.settings.enableDownloaded) {
             // 清理旧标
