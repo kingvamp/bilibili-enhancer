@@ -1,5 +1,5 @@
 import { SELECTORS } from '../../constants/selectors';
-import { extractBvid, isInsideExcludedArea, findCoverInElement } from '../../utils/dom';
+import { extractBvid, isInsideExcludedArea, findCoverInElement, hasMarker, findClosestVideoCard } from '../../utils/dom';
 
 export class PageScanner {
     private isRunning = false;
@@ -61,39 +61,54 @@ export class PageScanner {
         const links = document.querySelectorAll(SELECTORS.SCANNER.VIDEO_LINK);
         links.forEach(link => {
             const anchor = link as HTMLAnchorElement;
-            if (anchor.dataset.biliEnhancedProcessed) return;
+            const bvid = extractBvid(anchor.href);
+            if (!bvid) return;
+
+            // 如果已经处理过，检查标识位（Marker）是否还在
+            // 如果 B 站进行了一次大的重渲染，虽然外层 Anchor 还在，但内部可能已经被清空了
+            if (anchor.dataset.biliEnhancedProcessed) {
+                const card = findClosestVideoCard(anchor) || anchor;
+                const cover = findCoverInElement(card) || findCoverInElement(anchor);
+                const target = cover || anchor;
+                if (hasMarker(target)) return;
+                
+                // 标记不在了，移除 processed 状态重新发现
+                delete anchor.dataset.biliEnhancedProcessed;
+            }
 
             // 过滤掉非视频区域 (如顶栏)
             if (isInsideExcludedArea(anchor)) return;
 
-            const bvid = extractBvid(anchor.href);
-            if (bvid) {
-                // 关键点：只处理具有封面的链接作为活跃实体，避免扫描到文字标题链接导致角标位置漂移
-                if (!findCoverInElement(anchor)) return;
+            // 关键点：只处理具有封面的链接作为活跃实体，避免扫描到文字标题链接导致角标位置漂移
+            if (!findCoverInElement(anchor)) return;
 
-                anchor.dataset.biliEnhancedProcessed = "true";
-                anchor.dataset.targetBvid = bvid;
-                
-                this.viewportObserver?.observe(anchor);
-            }
+            anchor.dataset.biliEnhancedProcessed = "true";
+            anchor.dataset.targetBvid = bvid;
+            
+            this.viewportObserver?.observe(anchor);
         });
 
         // 2. 扫描具有 data-key="BV..." 的元素 (如稍后再玩列表)
         const itemsWithKey = document.querySelectorAll(SELECTORS.SCANNER.DATA_KEY_BV);
         itemsWithKey.forEach(item => {
             const element = item as HTMLElement;
-            if (element.dataset.biliEnhancedProcessed) return;
-
             const bvid = element.dataset.key;
-            if (bvid && bvid.startsWith('BV')) {
-                // 如果这个元素很大且不包含封面容器，说明它可能是个纯文本列表项，跳过
-                if (!findCoverInElement(element) && element.innerText.length > 50) return;
+            if (!bvid || !bvid.startsWith('BV')) return;
 
-                element.dataset.biliEnhancedProcessed = "true";
-                element.dataset.targetBvid = bvid;
-                
-                this.viewportObserver?.observe(element);
+            if (element.dataset.biliEnhancedProcessed) {
+                const cover = findCoverInElement(element);
+                const target = cover || element;
+                if (hasMarker(target)) return;
+                delete element.dataset.biliEnhancedProcessed;
             }
+
+            // 如果这个元素很大且不包含封面容器，说明它可能是个纯文本列表项，跳过
+            if (!findCoverInElement(element) && element.innerText.length > 50) return;
+
+            element.dataset.biliEnhancedProcessed = "true";
+            element.dataset.targetBvid = bvid;
+            
+            this.viewportObserver?.observe(element);
         });
     }
 }

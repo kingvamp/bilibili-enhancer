@@ -42,8 +42,9 @@ export function findTitleInCard(card: HTMLElement, bvid?: string): HTMLElement |
         const links = card.querySelectorAll('a');
         for (const link of links) {
             const hLink = link as HTMLElement;
-            // 排除封面图本身 (通常带有特殊标识类)
+            // 排除封面图本身 (通过类名或结构特征识别)
             if (hLink.classList.contains('bili-res-badge-parent')) continue;
+            if (findCoverInElement(hLink)) continue; 
             
             if (hLink.innerText.trim() && (hLink.getAttribute('href')?.includes(bvid) || hLink.dataset.targetBvid === bvid)) {
                 return hLink;
@@ -108,8 +109,22 @@ export function ensureLayeredContext(element: HTMLElement) {
 }
 
 /**
- * 从 B 站用户空间链接中提取 UID
+ * 为已处理的容器添加一个隐藏的持久化标记位，用于检测 B 站是否发生了 DOM 重绘（导致角标被抹除）
  */
+export function addMarker(container: HTMLElement) {
+    if (container.querySelector('.bili-enhanced-marker')) return;
+    const marker = document.createElement('span');
+    marker.className = 'bili-enhanced-marker';
+    marker.style.display = 'none';
+    container.appendChild(marker);
+}
+
+/**
+ * 检查容器内是否仍然存活有效的处理标记
+ */
+export function hasMarker(container: HTMLElement): boolean {
+    return !!container.querySelector('.bili-enhanced-marker');
+}
 export function extractUid(url: string | null): number | null {
     if (!url) return null;
     const match = url.match(/space\.bilibili\.com\/(\d+)/);
