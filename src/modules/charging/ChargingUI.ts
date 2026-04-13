@@ -1,3 +1,6 @@
+import { SELECTORS } from '../../constants/selectors';
+import { findVideoCardWrapper } from '../../utils/dom';
+
 /**
  * ChargingUI
  * Handles CSS injection and visual manipulation (hiding/masking) of video cards.
@@ -13,12 +16,6 @@ const MASK_CSS = `
     pointer-events: auto; cursor: not-allowed;
 }
 `;
-
-const WRAPPER_SELECTORS = [
-  '.feed-card', '.bili-video-card__wrap', '.video-list-item', '.col_3', 
-  '.col_4', '.card-box', '.upload-video-card', '.items__item', 
-  '.floor-card', '.recommend-card', '.video-page-card-small', '.bili-dyn-list__item'
-];
 
 export class ChargingUI {
   private styleEl: HTMLStyleElement | null = null;
@@ -39,8 +36,7 @@ export class ChargingUI {
   }
 
   public getWrapper(card: HTMLElement): HTMLElement {
-    const wrapper = card.closest(WRAPPER_SELECTORS.join(', ')) as HTMLElement | null;
-    return (wrapper && wrapper !== document.body) ? wrapper : card;
+    return findVideoCardWrapper(card);
   }
 
   /**

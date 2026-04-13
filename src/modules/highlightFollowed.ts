@@ -1,6 +1,8 @@
 // src/modules/highlightFollowed.ts
 import { Module } from '../types';
-import { showToast } from '../utils/toast'; // 复用之前的提示框
+import { showToast } from '../utils/toast';
+import { SELECTORS } from '../constants/selectors';
+import { extractUid } from '../utils/dom';
 
 const STORAGE_KEY_ENABLE = 'enable_highlight_follow';
 const STORAGE_KEY_LIST = 'follow_list_cache';
@@ -56,17 +58,15 @@ function removeStyle() {
 function highlight() {
     if (!isRunning || followSet.size === 0) return;
 
-    const links = document.querySelectorAll('a[href*="space.bilibili.com"]');
+    const links = document.querySelectorAll(SELECTORS.USER.SPACE_LINK);
     links.forEach((link) => {
         // 类型断言，确保它是 HTMLAnchorElement
         const anchor = link as HTMLAnchorElement;
 
         if (anchor.dataset.biliFollowChecked) return;
 
-        const match = anchor.href.match(/space\.bilibili\.com\/(\d+)/);
-        if (!match) return;
-
-        const uid = parseInt(match[1]);
+        const uid = extractUid(anchor.href);
+        if (!uid) return;
 
         if (followSet.has(uid)) {
             const img = anchor.querySelector('img');

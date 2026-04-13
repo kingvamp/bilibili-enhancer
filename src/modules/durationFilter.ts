@@ -1,59 +1,14 @@
 import { Module } from '../types';
 import { STORAGE_KEYS } from '../constants';
+import { SELECTORS } from '../constants/selectors';
+import { findVideoCardWrapper } from '../utils/dom';
 
 /**
  * Bilibili Video Duration Filter
- * Features:
- * - Filters videos by minimum/maximum duration.
- * - Supports 'hide' (display: none) or 'dim' (opacity: 0.2) modes.
- * - Works on Recommendation Feed, Search Results, and User Space.
  */
 
-const CARD_SELECTORS = [
-    '.bili-video-card', 
-    '.small-item', 
-    '.video-page-card', 
-    '.rank-item', 
-    '.feed-card', 
-    '.cube-list li', 
-    '.floor-card', 
-    '.recommend-card', 
-    '.video-page-card-small', 
-    '.bili-dyn-card-video',
-    '.item',
-    '.v-card-single',
-    '.video-card-common',
-    '.upload-video-card',
-    '.items__item'
-];
-
-const WRAPPER_SELECTORS = [
-    '.feed-card', 
-    '.bili-video-card__wrap', 
-    '.video-list-item', 
-    '.col_3', 
-    '.col_4', 
-    '.card-box', 
-    '.upload-video-card', 
-    '.items__item', 
-    '.floor-card', 
-    '.recommend-card', 
-    '.video-page-card-small', 
-    '.bili-dyn-list__item',
-    '.small-item',
-    '.item'
-];
-
-const DURATION_SELECTORS = [
-    '.bili-video-card__stats__duration',
-    '.length',
-    '.duration',
-    '.item-footer > span:first-child',
-    '.bili-video-card__stats span:last-child',
-    '.bili-video-card__info__duration',
-    '.bili-cover-card__stats__duration',
-    '.stats span.length'
-];
+const CARD_SELECTORS = SELECTORS.VIDEO_CARD.ENTITY;
+const DURATION_SELECTORS = SELECTORS.VIDEO_CARD.DURATION;
 
 interface FilterSettings {
     enabled: boolean;
@@ -74,8 +29,7 @@ let scanTimeout: number | undefined;
 let periodicInterval: number | undefined;
 
 function getWrapper(card: HTMLElement): HTMLElement {
-    const wrapper = card.closest(WRAPPER_SELECTORS.join(', ')) as HTMLElement | null;
-    return (wrapper && wrapper !== document.body) ? wrapper : card;
+    return findVideoCardWrapper(card);
 }
 
 /**

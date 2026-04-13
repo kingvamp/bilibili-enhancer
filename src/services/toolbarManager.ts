@@ -1,7 +1,5 @@
-/**
- * 工具栏管理器
- * 负责统一管理视频页工具栏上的增强功能按钮
- */
+import { SELECTORS } from '../constants/selectors';
+
 export interface ToolbarItem {
     id: string;
     order: number; // 排序权重，小的排在前面
@@ -34,11 +32,9 @@ export class ToolbarManager {
     private isUpdating = false;
 
     public refresh() {
-        console.trace('[ToolbarManager] Refresh triggered!');
         if (this.isUpdating) return;
 
-        const toolbar = document.querySelector('.video-toolbar-left') ||
-            document.querySelector('.toolbar-left');
+        const toolbar = document.querySelector(SELECTORS.PLAY_PAGE.TOOLBAR_LEFT.join(', '));
         if (!toolbar || !(toolbar instanceof HTMLElement)) {
             // 如果没找到工具栏，说明可能已经离开视频页，清空容器引用
             this.groupContainer = null;
@@ -93,7 +89,7 @@ export class ToolbarManager {
         let timer: any = null;
 
         // 1. 尝试寻找更窄的观察范围
-        const targetNode = document.getElementById('app') || document.querySelector('.v-wrap') || document.body;
+        const targetNode = document.querySelector(SELECTORS.PLAY_PAGE.INFO_CONTAINER.join(', ')) || document.body;
 
         const observer = new MutationObserver((mutations) => {
             if (!chrome.runtime?.id) {
@@ -106,11 +102,10 @@ export class ToolbarManager {
                 if (!target || !target.classList) return false;
 
                 // 排除顶栏和导航栏的日常闪烁，不理会它们的变动
-                if (target.classList.contains('bili-header') || target.closest('.bili-header')) return false;
+                if (target.closest(SELECTORS.SCANNER.EXCLUDED_AREAS.join(', '))) return false;
 
                 // 仅关注工具栏或相关业务容器
-                return target.classList.contains('video-toolbar-left') ||
-                    target.classList.contains('toolbar-left') ||
+                return SELECTORS.PLAY_PAGE.TOOLBAR_LEFT.some(s => target.classList.contains(s.slice(1))) ||
                     target.id === 'arc_toolbar_report' ||
                     target.classList.contains('video-info-container');
             });

@@ -1,5 +1,7 @@
 import { Module } from '../types';
 import { COVER_SIZES, STORAGE_KEYS, DOM_IDS } from '../constants'; // 引入公共常量
+import { SELECTORS } from '../constants/selectors';
+import { extractBvidFromUrl } from '../utils/dom';
 
 const GAP = 15;
 
@@ -34,12 +36,6 @@ function createTooltip() {
     img.style.cssText = `width: 100%; height: auto; display: block; border-radius: 4px;`;
     tooltip.appendChild(img);
     document.body.appendChild(tooltip);
-}
-
-function getBvidFromUrl(url: string | null): string | null {
-    if (!url) return null;
-    const match = url.match(/(BV[a-zA-Z0-9]{10})/);
-    return match ? match[1] : null;
 }
 
 function loadCover(bvid: string) {
@@ -87,19 +83,19 @@ function updatePosition(e: MouseEvent) {
 }
 
 // === 事件监听器 ===
-const handleMouseOver = (e: MouseEvent) => {
+function handleMouseOver(e: MouseEvent) {
     if (!isRunning) return;
     
     const target = e.target as HTMLElement;
     // 屏蔽区域
-    const isForbiddenZone = target.closest('.rec-list, .recommend-list, .video-page-card, .card-box, .bili-video-card, .video-title-href');
+    const isForbiddenZone = target.closest(SELECTORS.SCANNER.EXCLUDED_AREAS.join(', '));
     if (isForbiddenZone) return;
 
     let bvid: string | null = null;
     let targetElement: HTMLElement | null = null;
 
     // 检测逻辑
-    const divItem = target.closest('[data-key]') as HTMLElement;
+    const divItem = target.closest(SELECTORS.SCANNER.DATA_KEY_BV) as HTMLElement;
     if (divItem) {
         const key = divItem.getAttribute('data-key');
         if (key && key.startsWith('BV')) {
@@ -113,7 +109,7 @@ const handleMouseOver = (e: MouseEvent) => {
         if (linkItem) {
             // 简单判断：没有包含图片的链接，且宽度不太宽（避免误判大横幅）
             if (!linkItem.querySelector('img') && linkItem.getBoundingClientRect().width < 500) {
-                 bvid = getBvidFromUrl(linkItem.href);
+                 bvid = extractBvidFromUrl(linkItem.href);
                  targetElement = linkItem;
             }
         }
@@ -130,7 +126,7 @@ const handleMouseOver = (e: MouseEvent) => {
             updatePosition(e);
         }
     }
-};
+}
 
 const handleMouseMove = (e: MouseEvent) => {
     if (!isRunning) return;
@@ -141,7 +137,7 @@ const handleMouseMove = (e: MouseEvent) => {
 
 const handleMouseOut = (e: MouseEvent) => {
     if (!isRunning || !tooltip) return;
-    const item = (e.target as HTMLElement).closest('[data-key], a');
+    const item = (e.target as HTMLElement).closest(`${SELECTORS.SCANNER.DATA_KEY_BV}, a`);
     if (item && e.relatedTarget && item.contains(e.relatedTarget as Node)) return;
     tooltip.style.display = 'none';
 };

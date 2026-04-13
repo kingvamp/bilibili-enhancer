@@ -1,12 +1,13 @@
 # CONTEXT.md
 
 ## 当前进度
-- 实现了全站（播放页及各类列表页）视频标题的多状态高亮功能：**已下载 (绿色)**、**已收藏 (粉色)**、**已点赞 (蓝色)**。
+- 已完成全工程网站元素选择器的抽象与重构。
+- 修复了时长筛选功能在重构后因选择器范围过广导致的误隐藏问题。
+- 已统一管理 `selectors.ts` 和 `dom.ts`。
 
-## 上次停留在
-- 完成了 `ThumbnailRenderer` 对视频卡片标题的自动识别与高亮逻辑。
+## 上次停点
+- 完成了对 `durationFilter.ts`、`ChargingUI.ts`、`coverPreview.ts`、`ThumbnailFavButton.ts` 和 `toolbarManager.ts` 的重构与验证。
 
-## 关键决定
-- 扩展了 `BadgeDecorator` 接口，允许所有装饰器同步修改关联的标题元素。
-- 在 `ThumbnailRenderer` 中统一实现了 `findTitleElement` 逻辑，兼容了 B 站首页、搜索、空间等多种卡片布局。
-- 确立了全局统一的优先级：已下载 > 已收藏 > 已点赞。
+## 近期关键决定
+- **选择器分层**：将 `VIDEO_CARD` 选择器拆分为 `ENTITY`（扫描专用）和 `ANCESTORS`（向上查找专用），解决了 `durationFilter` 误伤父容器的问题。
+- 封装了 `findTitleInCard` 和 `extractBvid` 等通用工具，提高了新功能的开发效率和代码复用性。

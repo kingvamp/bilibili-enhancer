@@ -1,5 +1,7 @@
 import { FavoriteService } from '../../services/favorite';
 import { bvToAv } from '../../bilibili';
+import { SELECTORS } from '../../constants/selectors';
+import { isFavoritePage, findCoverInElement, extractBvidFromUrl } from '../../utils/dom';
 
 export class ThumbnailFavButton {
     private service = FavoriteService.getInstance();
@@ -10,31 +12,22 @@ export class ThumbnailFavButton {
         if (!this.isEnabled) return;
 
         // 识别收藏夹页面，避免在已知收藏夹内冗余显示
-        const isFavPage = location.href.includes('medialist') || 
-                          location.href.includes('favlist') ||
-                          !!document.querySelector('.fav-detail') ||
-                          !!document.querySelector('.fav-info');
-        if (isFavPage) return;
+        if (isFavoritePage()) return;
 
-        const links = document.querySelectorAll('a[href*="/video/BV"]');
+        const links = document.querySelectorAll(SELECTORS.SCANNER.VIDEO_LINK);
         links.forEach(link => {
             const anchor = link as HTMLAnchorElement;
             if (anchor.dataset.gmFavProcessed) return;
 
             // 搜索页优化：如果是标题 link，跳过
-            if (anchor.closest('h1, h2, h3, h4, h5, h6, .title, .info > .tit')) return;
+            if (anchor.closest(SELECTORS.SCANNER.EXCLUDED_AREAS.join(', '))) return;
 
             // 寻找封面容器
-            const cover = anchor.querySelector('img') || anchor.querySelector('picture') || 
-                          anchor.classList.contains('cover') || 
-                          anchor.classList.contains('bili-video-card__cover') ||
-                          anchor.classList.contains('b-link-cover') ||
-                          anchor.classList.contains('b-img');
+            const cover = findCoverInElement(anchor);
             if (!cover) return;
 
-            const bvidMatch = anchor.href.match(/(BV[a-zA-Z0-9]{10})/);
-            if (!bvidMatch) return;
-            const bvid = bvidMatch[1];
+            const bvid = extractBvidFromUrl(anchor.href);
+            if (!bvid) return;
 
             anchor.dataset.gmFavProcessed = "true";
             anchor.classList.add('gm-fav-rel-parent'); 
