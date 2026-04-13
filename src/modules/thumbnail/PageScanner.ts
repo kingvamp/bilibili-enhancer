@@ -43,6 +43,7 @@ export class PageScanner {
     }
 
     private scan() {
+        // 1. 扫描标准视频链接
         const links = document.querySelectorAll('a[href*="BV"]');
         links.forEach(link => {
             const anchor = link as HTMLAnchorElement;
@@ -62,6 +63,28 @@ export class PageScanner {
                 anchor.classList.add('bili-res-badge-parent'); 
                 
                 this.viewportObserver?.observe(anchor);
+            }
+        });
+
+        // 2. 扫描具有 data-key="BV..." 的元素 (如稍后再看列表)
+        const itemsWithKey = document.querySelectorAll('[data-key^="BV"]');
+        itemsWithKey.forEach(item => {
+            const element = item as HTMLElement;
+            if (element.dataset.biliEnhancedProcessed) return;
+
+            const bvid = element.dataset.key;
+            if (bvid && bvid.startsWith('BV')) {
+                // 标记封面区域作为徽章父级，稍后再看列表中的类名通常是 .cover
+                const target = element.querySelector('.cover') || element;
+                const targetEl = target as HTMLElement;
+                
+                if (targetEl.dataset.biliEnhancedProcessed) return;
+
+                targetEl.dataset.biliEnhancedProcessed = "true";
+                targetEl.dataset.targetBvid = bvid;
+                targetEl.classList.add('bili-res-badge-parent');
+                
+                this.viewportObserver?.observe(targetEl);
             }
         });
     }

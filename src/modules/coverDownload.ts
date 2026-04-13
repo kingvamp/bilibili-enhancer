@@ -81,15 +81,19 @@ function renderButton(container: HTMLElement) {
 
     container.innerHTML = `${ICONS.COVER}<span class="bili-cover-text" style="padding-top: 2px; min-width: 28px;">封面</span>`;
 
-    const previewImg = document.createElement('img');
-    previewImg.id = DOM_IDS.COVER_PREVIEW_IMG;
-    previewImg.style.cssText = `
-        display: none; position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%);
-        border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-        z-index: 10002; background: #fff; padding: 4px; border: 1px solid #e7e7e7;
-        transition: width 0.2s ease;
-    `;
-    container.appendChild(previewImg);
+    // 1. 获取或创建全局预览层（直接挂在 body 下，破除 z-index 限制）
+    let previewImg = document.getElementById(DOM_IDS.COVER_PREVIEW_IMG) as HTMLImageElement;
+    if (!previewImg) {
+        previewImg = document.createElement('img');
+        previewImg.id = DOM_IDS.COVER_PREVIEW_IMG;
+        previewImg.style.cssText = `
+            display: none; position: fixed; 
+            border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            z-index: 2147483647; background: #fff; padding: 4px; border: 1px solid #e7e7e7;
+            transition: width 0.2s ease; pointer-events: none;
+        `;
+        document.body.appendChild(previewImg);
+    }
 
     const textSpan = container.querySelector('.bili-cover-text') as HTMLElement;
     container.onclick = () => downloadAction(container);
@@ -100,14 +104,23 @@ function renderButton(container: HTMLElement) {
         const url = getCoverUrl();
         if (url) {
             previewImg.src = url;
-            previewImg.style.width = getCurrentWidthStyle();
+            const widthStyle = getCurrentWidthStyle();
+            previewImg.style.width = widthStyle;
+            
+            // 2. 动态计算位置（在按钮上方居中）
+            const rect = container.getBoundingClientRect();
+            const width = parseInt(widthStyle);
+            const left = rect.left + (rect.width / 2) - (width / 2);
+            
+            previewImg.style.left = `${left}px`;
+            previewImg.style.bottom = `${window.innerHeight - rect.top + 8}px`; // 按钮上方 8px
             previewImg.style.display = 'block';
         }
     };
 
     container.onmouseleave = () => {
         textSpan.innerText = '封面';
-        previewImg.style.display = 'none';
+        if (previewImg) previewImg.style.display = 'none';
     };
 }
 

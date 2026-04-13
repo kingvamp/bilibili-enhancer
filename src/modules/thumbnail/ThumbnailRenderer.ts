@@ -69,12 +69,13 @@ export class ThumbnailRenderer {
     private findTitleElement(element: HTMLElement): HTMLElement | null {
         const bvid = element.dataset.targetBvid;
         
-        // 1. 尝试向上寻找最可能的卡片容器 (包含推荐列表的 .card-box)
+        // 1. 尝试向上寻找最可能的卡片容器 (包含推荐列表的 .card-box 和稍后再看的列表)
         const selectors = [
             '.bili-video-card', '.video-item', '.small-item', 
             '.video-card-common', '.b-video-item', '.video-list-item',
             '.item', '.video-card', '.archive-card', '.list-item', '.card-box',
-            '[class*="video-card"]', '[class*="VideoCard"]', '[class*="card-box"]'
+            '.action-list-item', '.action-list-item-wrap',
+            '[class*="video-card"]', '[class*="VideoCard"]', '[class*="card-box"]', '[class*="action-list-item"]'
         ];
         const card = element.closest(selectors.join(', '));
         
