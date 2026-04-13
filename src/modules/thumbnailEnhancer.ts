@@ -7,6 +7,7 @@ import { PageScanner } from './thumbnail/PageScanner';
 import { TitleBadgeManager } from './thumbnail/TitleBadge';
 import { InfoDecorator, StatusDecorator, DownloadedDecorator } from './thumbnail/plugins';
 import { showToast } from '../utils/toast';
+import { debounce } from '../utils/common';
 
 interface ThumbnailSettings {
     enableStatus: boolean;
@@ -17,6 +18,7 @@ interface ThumbnailSettings {
 }
 
 let isRunning = false;
+let lastUrl = location.href;
 const settings: ThumbnailSettings = {
     enableStatus: true,
     enableRes: true,
@@ -65,7 +67,7 @@ function start() {
             const titleTag = document.querySelector('title');
             if (titleTag) {
                 new MutationObserver(() => {
-                    refreshAll('二级导航切换');
+                    // refreshAll('二级导航切换');
                 }).observe(titleTag, { childList: true });
             }
             // 监听历史变化 (当其他模块触发下载成功时，自动通知渲染器刷新)
@@ -80,7 +82,7 @@ function start() {
             });
             scanner.start();
             titleBadge.check();
-        }, 50); // 延迟后应用高亮
+        }, 0); // 延迟后应用高亮
     });
 }
 
@@ -134,8 +136,18 @@ export const ThumbnailEnhancerModule: Module = {
     }
 };
 
-function refreshAll(toast: string = '刷新') {
-    showToast(toast);
+const debouncedRefresh = debounce((reason: string) => {
+    const currentUrl = location.href;
+    // 如果 URL 没变且是由二级导航切换（标题改变）触发的刷新，则认为是冗余触发，跳过
+    if (currentUrl === lastUrl && reason === '二级导航切换') {
+        return;
+    }
+    lastUrl = currentUrl;
+    showToast(reason);
     renderer.refreshAll();
     titleBadge.check();
+}, 300);
+
+function refreshAll(toast: string = '刷新') {
+    debouncedRefresh(toast);
 }
