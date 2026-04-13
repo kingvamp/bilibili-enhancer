@@ -1,36 +1,64 @@
-import { DOM_IDS } from '../constants';
+// src/utils/toast.ts
 
 /**
- * 显示一个临时的提示框 (Toast)
+ * 显示提示信息 (支持堆叠)
  * @param text 提示文本
- * @param duration 显示时长（毫秒），默认2000
+ * @param duration 显示时长 (ms)
  */
-export function showToast(text: string, duration: number = 2000, fadeOutDuration: number = 300): void {
-    let toast = document.getElementById(DOM_IDS.TOAST);
-    // 如果不存在则创建
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = DOM_IDS.TOAST;
-        // 样式稍微美化了一下：居中、半透明黑底白字
-        toast.style.cssText = `
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #fb7299; color: #fff; padding: 12px 24px;
-            border-radius: 8px; font-size: 14px; z-index: 100000; pointer-events: none; transition: opacity ${fadeOutDuration / 1000}s;
-            transition: opacity 0.3s; font-family: sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+export function showToast(text: string, duration: number = 2000): void {
+    const CONTAINER_ID = 'bili-enhancer-toast-container';
+    let container = document.getElementById(CONTAINER_ID);
+
+    // 1. 确保容器存在
+    if (!container) {
+        container = document.createElement('div');
+        container.id = CONTAINER_ID;
+        container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            z-index: 100000;
+            pointer-events: none;
         `;
-        document.body.appendChild(toast);
+        document.body.appendChild(container);
     }
+
+    // 2. 创建新消息元素
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        background: #fb7299;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: sans-serif;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: opacity 0.3s, transform 0.3s;
+        white-space: nowrap;
+    `;
     toast.innerText = text;
-    toast.style.opacity = '1';
+    container.appendChild(toast);
 
-    // 清除旧的定时器（如果有），防止闪烁或过早消失
-    const oldTimer = toast.getAttribute('data-timer');
-    if (oldTimer) clearTimeout(parseInt(oldTimer));
+    // 3. 进场动画
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    });
 
-    // 设置定时器，指定时长后淡出
-    const timer = window.setTimeout(() => {
-        if (toast) toast.style.opacity = '0';
+    // 4. 定时淡出并移除
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        // 动画结束后从 DOM 移除
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
     }, duration);
-
-    toast.setAttribute('data-timer', timer.toString());
-}
+}
