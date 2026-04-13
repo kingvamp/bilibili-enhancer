@@ -96,7 +96,8 @@ export const SELECTORS = {
             '.video-info-container .video-info-title-inner',
             '.v-title h1',
             '.left-container .tit',
-            '.video-info-title-inner'
+            '.video-info-title-inner',
+            '.video-title'
         ],
         // 工具栏左侧区域
         TOOLBAR_LEFT: [

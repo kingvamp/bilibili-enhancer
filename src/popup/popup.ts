@@ -27,6 +27,7 @@ const coverRadios = document.querySelectorAll('input[name="cover-size"]');
 const toggleThumbRes = document.getElementById('toggle-thumb-res') as HTMLInputElement;
 const toggleThumbPCount = document.getElementById('toggle-thumb-pcount') as HTMLInputElement;
 const toggleThumbDownloaded = document.getElementById('toggle-thumb-downloaded') as HTMLInputElement;
+const downloadedCountEl = document.getElementById('downloaded-count') as HTMLElement;
 const toggleDownloadVideo = document.getElementById('toggle-download-video') as HTMLInputElement;
 
 // 缩略图增强 - 状态与样式 (Radio 组)
@@ -252,7 +253,32 @@ if (toggleDurationFilter) {
 }
 
 
-// === 10. 页脚功能 ===
+// === 10. 已下载数量展示 ===
+function updateDownloadedCount() {
+    if (!downloadedCountEl) return;
+
+    // 先从缓存读取
+    chrome.storage.local.get(['download_history'], (res: any) => {
+        const history = res.download_history || [];
+        if (history.length > 0) {
+            downloadedCountEl.innerText = `(${history.length})`;
+        } else {
+            downloadedCountEl.innerText = '';
+        }
+    });
+
+    // 触发后端刷新
+    chrome.runtime.sendMessage({ action: 'fetchDownloadHistory' }, (res: any) => {
+        if (res && res.success && Array.isArray(res.data)) {
+            downloadedCountEl.innerText = `(${res.data.length})`;
+        }
+    });
+}
+
+updateDownloadedCount();
+
+
+// === 11. 页脚功能 ===
 const versionEl = document.getElementById('app-version');
 if (versionEl) {
     const manifest = chrome.runtime.getManifest();

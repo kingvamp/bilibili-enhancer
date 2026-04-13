@@ -59,6 +59,8 @@ function start() {
     titleBadge = new TitleBadgeManager(settings);
 
     // 4. 获取下载历史并开启监听
+    // 详情页延迟初始化，避开 B 站首屏 DOM 剧变期
+    const isVideoPage = location.pathname.startsWith('/video/') || location.pathname.startsWith('/list/');
     const historyService = DownloadHistoryService.getInstance();
     historyService.refresh().then(() => {
         setTimeout(() => {
@@ -81,13 +83,8 @@ function start() {
                 titleBadge.check();
             });
             scanner.start();
-
-            // 播放页延迟初始化，避开 B 站初始加载时的 DOM 震动
-            const isVideoPage = location.pathname.startsWith('/video/') || location.pathname.startsWith('/list/');
-            setTimeout(() => {
-                titleBadge.check();
-            }, isVideoPage ? 1500 : 0);
-        }, 0); // 延迟后应用高亮
+            titleBadge.check();
+        }, isVideoPage ? 1500 : 0); //TODO 暂时添加延迟，后续优化
     });
 }
 

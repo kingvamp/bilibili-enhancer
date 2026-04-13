@@ -107,8 +107,15 @@ body {
 .label-box {
     display: flex;
     align-items: center;
-    /* 垂直居中对齐文字和问号图标 */
+    /* 垂直居中对齐文字 and 问号图标 */
     flex-direction: row;
+}
+
+.count-badge {
+    font-size: 11px;
+    color: var(--text-sub);
+    margin-left: 4px;
+    font-weight: normal;
 }
 
 /* === Tooltip (悬停提示) === */
