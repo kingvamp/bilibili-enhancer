@@ -68,6 +68,9 @@ export class PageScanner {
 
             const bvid = extractBvid(anchor.href);
             if (bvid) {
+                // 关键点：只处理具有封面的链接作为活跃实体，避免扫描到文字标题链接导致角标位置漂移
+                if (!findCoverInElement(anchor)) return;
+
                 anchor.dataset.biliEnhancedProcessed = "true";
                 anchor.dataset.targetBvid = bvid;
                 
@@ -83,6 +86,9 @@ export class PageScanner {
 
             const bvid = element.dataset.key;
             if (bvid && bvid.startsWith('BV')) {
+                // 如果这个元素很大且不包含封面容器，说明它可能是个纯文本列表项，跳过
+                if (!findCoverInElement(element) && element.innerText.length > 50) return;
+
                 element.dataset.biliEnhancedProcessed = "true";
                 element.dataset.targetBvid = bvid;
                 
