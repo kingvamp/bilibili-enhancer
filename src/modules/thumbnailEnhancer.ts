@@ -61,36 +61,27 @@ function start() {
     historyService.refresh().then(() => {
         setTimeout(() => {
             showToast('视频增强模块加载完成');
-            // scanner.start();
+            // 专门监听 B 站典型的二级导航切换
+            const titleTag = document.querySelector('title');
+            if (titleTag) {
+                new MutationObserver(() => {
+                    refreshAll('二级导航切换');
+                }).observe(titleTag, { childList: true });
+            }
+            // 监听历史变化 (当其他模块触发下载成功时，自动通知渲染器刷新)
+            historyService.subscribe(() => {
+                refreshAll("历史变化刷新");
+            });
+
+            // 监听收藏变化
+            FavoriteService.getInstance().subscribe(() => {
+                showToast('收藏变化刷新');
+                titleBadge.check();
+            });
+            scanner.start();
             titleBadge.check();
-        }, 2000); // 延迟 2 秒后应用高亮
+        }, 1000); // 延迟 1 秒后应用高亮
     });
-
-    // 监听历史变化 (当其他模块触发下载成功时，自动通知渲染器刷新)
-    historyService.subscribe(() => {
-        renderer.refreshAll();
-        titleBadge.check();
-    });
-
-    // 监听收藏变化
-    FavoriteService.getInstance().subscribe(() => {
-        titleBadge.check();
-    });
-
-    // 5. URL 变化监听 (SPA 路由)
-    let lastHref = location.href;
-    setInterval(() => {
-        if (location.href !== lastHref) {
-            lastHref = location.href;
-            titleBadge.check();
-        }
-    }, 1000);
-
-    // 专门监听 B 站典型的二级导航切换
-    const titleTag = document.querySelector('title');
-    if (titleTag) {
-        new MutationObserver(() => titleBadge.check()).observe(titleTag, { childList: true });
-    }
 }
 
 export const ThumbnailEnhancerModule: Module = {
@@ -136,10 +127,15 @@ export const ThumbnailEnhancerModule: Module = {
                 if (!isRunning && (settings.enableStatus || settings.enableRes || settings.enablePCount || settings.enableDownloaded)) {
                     start();
                 } else if (isRunning) {
-                    renderer.refreshAll();
-                    titleBadge.check();
+                    refreshAll("设置刷新");
                 }
             }
         });
     }
 };
+
+function refreshAll(toast: string = '刷新') {
+    showToast(toast);
+    renderer.refreshAll();
+    titleBadge.check();
+}

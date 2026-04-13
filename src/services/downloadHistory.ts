@@ -59,8 +59,6 @@ export class DownloadHistoryService {
 
     public subscribe(callback: (history: Set<string>) => void) {
         this.listeners.add(callback);
-        // 立即执行一次初始值
-        callback(this.history);
         return () => this.listeners.delete(callback);
     }
 

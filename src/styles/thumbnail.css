@@ -40,17 +40,17 @@
     line-height: 1; position: relative; top: -1px;
 }
 
-.bili-title-favorited {
+.bili-title-favorited, .bili-title-favorited * {
     color: var(--bili-color-fav) !important;
     font-weight: bold !important;
 }
 
-.bili-title-downloaded {
+.bili-title-downloaded, .bili-title-downloaded * {
     color: var(--bili-color-download) !important;
     font-weight: bold !important;
 }
 
-.bili-title-liked {
+.bili-title-liked, .bili-title-liked * {
     color: var(--bili-color-like) !important;
     font-weight: bold !important;
 }

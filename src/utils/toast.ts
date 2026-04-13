@@ -14,7 +14,7 @@ export function showToast(text: string, duration: number = 2000, fadeOutDuration
         // 样式稍微美化了一下：居中、半透明黑底白字
         toast.style.cssText = `
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.85); color: #fff; padding: 12px 24px;
+            background: #fb7299; color: #fff; padding: 12px 24px;
             border-radius: 8px; font-size: 14px; z-index: 100000; pointer-events: none; transition: opacity ${fadeOutDuration / 1000}s;
             transition: opacity 0.3s; font-family: sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         `;
@@ -22,15 +22,15 @@ export function showToast(text: string, duration: number = 2000, fadeOutDuration
     }
     toast.innerText = text;
     toast.style.opacity = '1';
-    
+
     // 清除旧的定时器（如果有），防止闪烁或过早消失
     const oldTimer = toast.getAttribute('data-timer');
     if (oldTimer) clearTimeout(parseInt(oldTimer));
 
     // 设置定时器，指定时长后淡出
-    const timer = window.setTimeout(() => { 
+    const timer = window.setTimeout(() => {
         if (toast) toast.style.opacity = '0';
     }, duration);
-    
+
     toast.setAttribute('data-timer', timer.toString());
 }
