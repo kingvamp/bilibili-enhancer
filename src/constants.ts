@@ -35,7 +35,8 @@ export const STORAGE_KEYS = {
     // === 新增：状态过滤相关 ===
     FILTER_LIKED: 'filter_liked_videos',      // 过滤已点赞
     FILTER_FAVORITED: 'filter_favorited_videos', // 过滤已收藏
-    FILTER_DOWNLOADED: 'filter_downloaded_videos' // 过滤已下载
+    FILTER_DOWNLOADED: 'filter_downloaded_videos', // 过滤已下载
+    FILTER_PANEL_EXPANDED: 'filter_panel_expanded' // 筛选面板展开状态
 };
 
 // === 新增：DOM 元素 ID 常量 ===

@@ -253,8 +253,43 @@ export const FloatingFilterMenuModule: Module = {
     init: () => {
         injectStyles();
         createMenu();
+        startVisibilityMonitor();
     }
 };
+
+/**
+ * 判断当前是否为视频播放页
+ */
+function isPlaybackPage() {
+    const path = window.location.pathname;
+    return path.startsWith('/video/') || 
+           path.startsWith('/bangumi/play/') ||
+           path.includes('/watchlater') ||
+           path.startsWith('/list/');
+}
+
+/**
+ * 启动可见性监听器 (适配 SPA)
+ */
+function startVisibilityMonitor() {
+    const check = () => {
+        const container = document.getElementById('gemini-floating-filter');
+        if (!container) return;
+        
+        const shouldHide = isPlaybackPage();
+        if (shouldHide) {
+            container.style.display = 'none';
+        } else {
+            container.style.display = 'flex';
+        }
+    };
+
+    // 初始检查
+    check();
+    
+    // 定时检查以适配单页跳转
+    setInterval(check, 1000);
+}
 
 function injectStyles() {
     if (document.getElementById('gemini-floating-filter-style')) return;
@@ -343,12 +378,14 @@ function createMenu() {
         e.stopPropagation();
         panel.classList.add('active');
         toggle.classList.add('hidden');
+        chrome.storage.sync.set({ [STORAGE_KEYS.FILTER_PANEL_EXPANDED]: true });
     });
 
     closeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         panel.classList.remove('active');
         toggle.classList.remove('hidden');
+        chrome.storage.sync.set({ [STORAGE_KEYS.FILTER_PANEL_EXPANDED]: false });
     });
 
     // 绑定数据
@@ -385,10 +422,20 @@ function bindData() {
         STORAGE_KEYS.HIDE_CHARGING,
         STORAGE_KEYS.FILTER_LIKED,
         STORAGE_KEYS.FILTER_FAVORITED,
-        STORAGE_KEYS.FILTER_DOWNLOADED
+        STORAGE_KEYS.FILTER_DOWNLOADED,
+        STORAGE_KEYS.FILTER_PANEL_EXPANDED
     ];
 
     chrome.storage.sync.get(keys, (res) => {
+        const expanded = !!res[STORAGE_KEYS.FILTER_PANEL_EXPANDED];
+        const panel = document.getElementById('gemini-filter-panel')!;
+        const toggle = document.getElementById('gemini-filter-toggle')!;
+        
+        if (expanded) {
+            panel.classList.add('active');
+            toggle.classList.add('hidden');
+        }
+
         durationEnable.checked = !!res[STORAGE_KEYS.DURATION_FILTER_ENABLE];
         durationMin.value = (res[STORAGE_KEYS.DURATION_FILTER_MIN] as number)?.toString() || '';
         durationMax.value = (res[STORAGE_KEYS.DURATION_FILTER_MAX] as number)?.toString() || '';
