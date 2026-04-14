@@ -15,10 +15,11 @@ export interface VideoInfo {
 
 export const ApiService = {
     /**
-     * 获取视频互动状态 (点赞/收藏)
+     * 获取视频互动状态 (原生请求)
      */
-    async getVideoRelation(bvid: string): Promise<VideoRelation | null> {
+    async getVideoRelationRaw(bvid: string): Promise<VideoRelation | null> {
         if (!chrome.runtime?.id) return null;
+
         return new Promise((resolve) => {
             try {
                 chrome.runtime.sendMessage({ action: 'fetchVideoRelation', bvid }, res => {
@@ -39,10 +40,11 @@ export const ApiService = {
     },
 
     /**
-     * 获取视频详细信息 (分辨率/分P数)
+     * 获取视频详细信息 (原生请求)
      */
-    async getVideoInfo(bvid: string): Promise<VideoInfo | null> {
+    async getVideoInfoRaw(bvid: string): Promise<VideoInfo | null> {
         if (!chrome.runtime?.id) return null;
+
         return new Promise((resolve) => {
             try {
                 chrome.runtime.sendMessage({ action: 'fetchVideoInfo', bvid }, res => {

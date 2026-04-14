@@ -1,5 +1,6 @@
 import { STORAGE_KEYS } from '../constants';
 import { ApiService } from './api';
+import { VideoDataCenter } from './DataCenter';
 
 export class FavoriteService {
     private static instance: FavoriteService;
@@ -108,7 +109,7 @@ export class FavoriteService {
      * 检查是否已收藏 (复用 ApiService)
      */
     public async checkIsFavorited(bvid: string): Promise<boolean> {
-        const relation = await ApiService.getVideoRelation(bvid);
+        const relation = await VideoDataCenter.getVideoRelation(bvid);
         return !!relation?.fav;
     }
 }

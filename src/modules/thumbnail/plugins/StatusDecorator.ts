@@ -1,4 +1,5 @@
-import { ApiService, VideoRelation } from '../../../services/api';
+import { VideoRelation } from '../../../services/api';
+import { VideoDataCenter } from '../../../services/DataCenter';
 import { DownloadHistoryService } from '../../../services/downloadHistory';
 import { BadgeDecorator } from './types';
 
@@ -15,11 +16,7 @@ export class StatusDecorator implements BadgeDecorator {
         // 如果已下载，由于其优先级最高，此装饰器退出（由 DownloadedDecorator 处理）
         if (DownloadHistoryService.getInstance().has(bvid)) return;
 
-        let data: VideoRelation | null = cache.status;
-        if (!data) {
-            data = await ApiService.getVideoRelation(bvid);
-            if (data) cache.status = data;
-        }
+        const data = await VideoDataCenter.getVideoRelation(bvid);
 
         if (!data) {
             // 清理可能残余的高亮类

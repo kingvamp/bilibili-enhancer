@@ -1,6 +1,6 @@
 import { DownloadHistoryService } from '../../services/downloadHistory';
 import { FavoriteService } from '../../services/favorite';
-import { ApiService } from '../../services/api';
+import { VideoDataCenter } from '../../services/DataCenter';
 import { SELECTORS } from '../../constants/selectors';
 
 /**
@@ -25,7 +25,7 @@ export class TitleBadgeManager {
 
         // 获取状态
         const isDownloaded = DownloadHistoryService.getInstance().has(bvid);
-        const relation = await ApiService.getVideoRelation(bvid);
+        const relation = await VideoDataCenter.getVideoRelation(bvid);
         const isFavorited = !!relation?.fav;
         const isLiked = !!relation?.like;
 

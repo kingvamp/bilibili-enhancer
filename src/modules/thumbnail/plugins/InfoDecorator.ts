@@ -1,4 +1,5 @@
-import { ApiService, VideoInfo } from '../../../services/api';
+import { VideoInfo } from '../../../services/api';
+import { VideoDataCenter } from '../../../services/DataCenter';
 import { DownloadHistoryService } from '../../../services/downloadHistory';
 import { BadgeDecorator } from './types';
 
@@ -15,14 +16,8 @@ export class InfoDecorator implements BadgeDecorator {
         if (!settings.enableRes && !settings.enablePCount) return;
 
         // 1. 获取数据 (优先缓存)
-        let data: VideoInfo | null = cache.videoInfo;
-        if (!data) {
-            // 如果已下载，通常不需要再查分辨率（为了性能）
-            if (DownloadHistoryService.getInstance().has(bvid)) return;
-            
-            data = await ApiService.getVideoInfo(bvid);
-            if (data) cache.videoInfo = data;
-        }
+        let data: VideoInfo | null = cache.videoInfo || await VideoDataCenter.getVideoInfo(bvid);
+        if (data) cache.videoInfo = data;
 
         if (!data) return;
 

@@ -1,6 +1,6 @@
 import { Module } from '../types';
 import { STORAGE_KEYS } from '../constants';
-import { ApiService } from '../services/api';
+import { VideoDataCenter } from '../services/DataCenter';
 import { DownloadHistoryService } from '../services/downloadHistory';
 import { FilterEngine } from '../services/FilterEngine';
 
@@ -20,8 +20,6 @@ const settings: InteractionSettings = {
     filterDownloaded: false
 };
 
-const relationCache = new Map<string, { fav: boolean, like: boolean } | null>();
-
 function checkAndApply(card: HTMLElement, bvid: string | null) {
     if (!bvid) return;
 
@@ -40,26 +38,14 @@ function checkAndApply(card: HTMLElement, bvid: string | null) {
     }
 
     // 2. 点赞/收藏过滤
-    if (relationCache.has(bvid)) {
-        const relation = relationCache.get(bvid);
-        if (relation) {
-            const isFiltered = (settings.filterLiked && relation.like) || (settings.filterFavorited && relation.fav);
+    VideoDataCenter.getVideoRelation(bvid).then(res => {
+        if (res) {
+            const isFiltered = (settings.filterLiked && res.like) || (settings.filterFavorited && res.fav);
             FilterEngine.getInstance().apply(card, 'interaction', isFiltered ? 'hide' : 'off');
         } else {
             FilterEngine.getInstance().apply(card, 'interaction', 'off');
         }
-    } else if (settings.filterLiked || settings.filterFavorited) {
-        // 加载中占位
-        relationCache.set(bvid, null);
-        ApiService.getVideoRelation(bvid).then(res => {
-            if (res) {
-                relationCache.set(bvid, res);
-                checkAndApply(card, bvid);
-            }
-        });
-    } else {
-        FilterEngine.getInstance().apply(card, 'interaction', 'off');
-    }
+    });
 }
 
 function updateAll() {
