@@ -4,14 +4,10 @@
  */
 import { ChargingService } from './ChargingService';
 import { ChargingUI } from './ChargingUI';
+import { FilterEngine } from '../../services/FilterEngine';
 
 const MAX_CONCURRENT = 4;
 const KEYWORDS = ["充电专属"];
-const CARD_SELECTORS = [
-  '.bili-video-card', '.small-item', '.video-page-card', '.rank-item', 
-  '.feed-card', '.cube-list li', '.floor-card', '.recommend-card', 
-  '.video-page-card-small', '.bili-dyn-card-video'
-];
 
 interface QueueItem {
   bvid: string;
@@ -36,14 +32,17 @@ export class ChargingScanner {
   }
 
   public start() {
-    if (this.observer) return;
+    FilterEngine.getInstance().onScan((card, bvid) => {
+        this.processCard(card, bvid);
+    });
+    FilterEngine.getInstance().start();
 
     // 初始化视口监听器
     this.viewportObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           const card = entry.target as HTMLElement;
-          const bvid = this.getBvid(card);
+          const bvid = this.tryExtractBvid(card);
           if (bvid && !this.service.isCoolingDown()) {
             this.enqueueInfoCheck(card, bvid);
           }
@@ -51,48 +50,20 @@ export class ChargingScanner {
         }
       });
     }, { rootMargin: '100px' });
-
-    this.scan();
-    this.observer = new MutationObserver((mutations) => {
-      if (!chrome.runtime?.id) {
-        this.stop();
-        return;
-      }
-      if (mutations.some(m => m.addedNodes.length > 0)) {
-        this.debouncedScan();
-      }
-    });
-    this.observer.observe(document.body, { childList: true, subtree: true });
   }
 
   public stop() {
-    if (this.observer) {
-      this.observer.disconnect();
-      this.observer = null;
-    }
     if (this.viewportObserver) {
       this.viewportObserver.disconnect();
       this.viewportObserver = null;
     }
-    if (this.scanTimeout) clearTimeout(this.scanTimeout);
     this.queue = [];
   }
 
-  private debouncedScan() {
-    if (this.scanTimeout) clearTimeout(this.scanTimeout);
-    this.scanTimeout = window.setTimeout(() => this.scan(), 150);
-  }
-
-  public scan() {
-
-    const selectorString = CARD_SELECTORS.join(', ');
-    const cards = document.querySelectorAll<HTMLElement>(selectorString);
-
-    cards.forEach((card) => {
-      if (card.style.display === 'none' || card.dataset.hiddenByGemini) return;
-
+  private processCard(card: HTMLElement, bvid: string | null) {
       // 1. 关键字快速检查 (不耗费 API)
-      if (KEYWORDS.some(kw => card.innerText.includes(kw))) {
+      const text = card.innerText || '';
+      if (KEYWORDS.some(kw => text.includes(kw))) {
         if (this.mode === 'off') {
           this.ui.applyBadge(card);
         } else {
@@ -102,7 +73,6 @@ export class ChargingScanner {
       }
 
       // 2. 只有当关键字没找到时，才考虑进入视口后请求 API
-      const bvid = this.getBvid(card);
       if (bvid) {
         if (this.service.isKnownCharging(bvid)) {
           if (this.mode === 'off') {
@@ -114,16 +84,17 @@ export class ChargingScanner {
           this.ui.markSafe(card);
         } else {
           // 标记为等待视口扫描，不直接请求 API
-          card.dataset.hiddenByGemini = 'pending_viewport';
-          this.viewportObserver?.observe(card);
+          if (!card.dataset.chargingStatus) {
+              card.dataset.chargingStatus = 'pending_viewport';
+              this.viewportObserver?.observe(card);
+          }
         }
       }
-    });
   }
 
   private enqueueInfoCheck(card: HTMLElement, bvid: string) {
-    if (card.dataset.hiddenByGemini === 'processing') return;
-    card.dataset.hiddenByGemini = 'processing';
+    if (card.dataset.chargingStatus === 'processing') return;
+    card.dataset.chargingStatus = 'processing';
     this.queue.push({ bvid, card });
     this.processQueue();
   }
@@ -132,7 +103,7 @@ export class ChargingScanner {
     // 如果服务处于冷却期，清空队列并停止请求
     if (this.service.isCoolingDown()) {
       this.queue.forEach(item => {
-        delete item.card.dataset.hiddenByGemini;
+        delete item.card.dataset.chargingStatus;
       });
       this.queue = [];
       return;
@@ -144,7 +115,7 @@ export class ChargingScanner {
 
       this.activeRequests++;
       this.service.checkChargingStatus(item.bvid)
-        .then((isCharging) => {
+        .then((isCharging: boolean) => {
           if (isCharging) {
             if (this.mode === 'off') {
               this.ui.applyBadge(item.card);
@@ -156,7 +127,7 @@ export class ChargingScanner {
           }
         })
         .catch(() => {
-          delete item.card.dataset.hiddenByGemini;
+          delete item.card.dataset.chargingStatus;
         })
         .finally(() => {
           this.activeRequests--;
@@ -165,15 +136,12 @@ export class ChargingScanner {
     }
   }
 
-  private getBvid(card: HTMLElement): string | null {
-    let bvid = card.dataset.targetBvid || card.getAttribute('data-target-bvid');
-    if (!bvid) {
-      const link = card.querySelector<HTMLAnchorElement>('a[href*="/video/BV"]');
-      if (link) {
-        const match = link.href.match(/(BV[a-zA-Z0-9]+)/);
-        if (match) bvid = match[1];
-      }
+  private tryExtractBvid(card: HTMLElement): string | null {
+    const link = card.querySelector<HTMLAnchorElement>('a[href*="/video/BV"]');
+    if (link) {
+      const match = link.href.match(/(BV[a-zA-Z0-9]+)/);
+      if (match) return match[1];
     }
-    return bvid || null;
+    return card.dataset.targetBvid || null;
   }
 }

@@ -1,19 +1,12 @@
-import { SELECTORS } from '../../constants/selectors';
-import { findVideoCardWrapper, findCoverInElement } from '../../utils/dom';
+import { FilterEngine, FilterMode } from '../../services/FilterEngine';
+import { findCoverInElement } from '../../utils/dom';
 
 /**
- * ChargingUI
- * Handles CSS injection and visual manipulation (hiding/masking) of video cards.
+ * ChargingUI (Refactored to use FilterEngine)
+ * Handles CSS injection and badge decoration. Hiding logic is delegated to FilterEngine.
  */
 
-const MASK_CSS = `
-.gemini-charging-mask {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.65); z-index: 10;
-    display: flex; align-items: center; justify-content: center;
-    backdrop-filter: blur(1px); border-radius: inherit;
-    pointer-events: none;
-}
+const BADGE_STYLE = `
 .gemini-toast {
     position: fixed; top: 20px; right: 20px; padding: 12px 20px;
     background: #ff4d4f; color: white; border-radius: 8px;
@@ -40,7 +33,7 @@ export class ChargingUI {
     if (document.getElementById('gemini-charging-style')) return;
     this.styleEl = document.createElement('style');
     this.styleEl.id = 'gemini-charging-style';
-    this.styleEl.textContent = MASK_CSS;
+    this.styleEl.textContent = BADGE_STYLE;
     document.head.appendChild(this.styleEl);
   }
 
@@ -64,48 +57,18 @@ export class ChargingUI {
     }
   }
 
-  public getWrapper(card: HTMLElement): HTMLElement {
-    return findVideoCardWrapper(card);
-  }
-
   /**
-   * Applies visual filtering to a video item.
+   * Applies visual filtering via FilterEngine.
    */
   public applyVisuals(card: HTMLElement, mode: string): void {
-    card.dataset.hiddenByGemini = 'true';
-    const wrapper = this.getWrapper(card);
-
-    if (mode === 'hide') {
-      wrapper.style.setProperty('display', 'none', 'important');
-    } else if (mode === 'mask') {
-      const cover = findCoverInElement(card) || wrapper;
-      
-      // Ensure relative positioning for mask
-      if (getComputedStyle(cover).position === 'static') {
-        cover.style.position = 'relative';
-      }
-
-      let mask = cover.querySelector('.gemini-charging-mask');
-      if (!mask) {
-        mask = document.createElement('div');
-        mask.className = 'gemini-charging-mask';
-        mask.innerHTML = `
-          <div style="display:flex; flex-direction:column; align-items:center;">
-              <span style="font-size:20px; margin-bottom:4px;">⚡</span>
-              <span>充电专属</span>
-          </div>
-        `;
-        cover.appendChild(mask);
-      }
-      wrapper.style.removeProperty('display');
-    }
+    const filterMode = mode as FilterMode;
+    FilterEngine.getInstance().apply(card, 'charging', filterMode);
   }
 
   /**
    * Adds a "Charging" badge to the cover.
    */
   public applyBadge(card: HTMLElement): void {
-    card.dataset.hiddenByGemini = 'true';
     const cover = findCoverInElement(card) || card;
     
     if (getComputedStyle(cover).position === 'static') {
@@ -122,30 +85,16 @@ export class ChargingUI {
   }
 
   public markSafe(card: HTMLElement): void {
-    card.dataset.hiddenByGemini = 'safe';
+    FilterEngine.getInstance().apply(card, 'charging', 'off');
   }
 
   public clearVisuals(): void {
-    document.querySelectorAll('[data-hidden-by-gemini="true"]').forEach(el => {
-      const element = el as HTMLElement;
-      const wrapper = this.getWrapper(element);
-      wrapper.style.removeProperty('display');
-      delete element.dataset.hiddenByGemini;
-
-      // 清理遮罩和角标
-      const mask = wrapper.querySelector('.gemini-charging-mask');
-      if (mask) mask.remove();
-
-      const badge = wrapper.querySelector('.gemini-charging-badge');
-      if (badge) badge.remove();
-    });
-
-    document.querySelectorAll('[data-hidden-by-gemini="safe"]').forEach(el => {
-        delete (el as HTMLElement).dataset.hiddenByGemini;
-    });
-
-    document.querySelectorAll('[data-hidden-by-gemini="processing"]').forEach(el => {
-        delete (el as HTMLElement).dataset.hiddenByGemini;
+    // FilterEngine will handle resetting its own state if needed,
+    // but here we ensure the charging filter is turned off for all cards.
+    document.querySelectorAll<HTMLElement>('[data-target-bvid], .bili-video-card').forEach(el => {
+        FilterEngine.getInstance().apply(el, 'charging', 'off');
+        const badge = el.querySelector('.gemini-charging-badge');
+        if (badge) badge.remove();
     });
   }
 }
