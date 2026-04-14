@@ -49,8 +49,7 @@ function checkAndApply(card: HTMLElement, bvid: string | null) {
 }
 
 function updateAll() {
-    FilterEngine.getInstance().start();
-    // 强制触发一次 FilterEngine 的扫描
+    FilterEngine.getInstance().reprocess();
 }
 
 export const InteractionFilterModule: Module = {

@@ -79,7 +79,7 @@ function checkAndApply(card: HTMLElement): void {
 }
 
 function updateAll() {
-    document.querySelectorAll<HTMLElement>(SELECTORS.VIDEO_CARD.ENTITY.join(', ')).forEach(checkAndApply);
+    FilterEngine.getInstance().reprocess();
 }
 
 export const DurationFilterModule: Module = {

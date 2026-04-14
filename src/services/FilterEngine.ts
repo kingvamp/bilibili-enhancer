@@ -84,6 +84,13 @@ export class FilterEngine {
     }
 
     /**
+     * 强制重新扫描并应用所有过滤器
+     */
+    public reprocess() {
+        this.scan();
+    }
+
+    /**
      * 停止及清理
      */
     public stop() {
