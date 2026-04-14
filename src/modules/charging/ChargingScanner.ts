@@ -84,7 +84,6 @@ export class ChargingScanner {
   }
 
   public scan() {
-    if (this.mode === 'off') return;
 
     const selectorString = CARD_SELECTORS.join(', ');
     const cards = document.querySelectorAll<HTMLElement>(selectorString);
@@ -94,7 +93,11 @@ export class ChargingScanner {
 
       // 1. 关键字快速检查 (不耗费 API)
       if (KEYWORDS.some(kw => card.innerText.includes(kw))) {
-        this.ui.applyVisuals(card, this.mode);
+        if (this.mode === 'off') {
+          this.ui.applyBadge(card);
+        } else {
+          this.ui.applyVisuals(card, this.mode);
+        }
         return;
       }
 
@@ -102,7 +105,11 @@ export class ChargingScanner {
       const bvid = this.getBvid(card);
       if (bvid) {
         if (this.service.isKnownCharging(bvid)) {
-          this.ui.applyVisuals(card, this.mode);
+          if (this.mode === 'off') {
+            this.ui.applyBadge(card);
+          } else {
+            this.ui.applyVisuals(card, this.mode);
+          }
         } else if (this.service.isKnownSafe(bvid)) {
           this.ui.markSafe(card);
         } else {
@@ -139,7 +146,11 @@ export class ChargingScanner {
       this.service.checkChargingStatus(item.bvid)
         .then((isCharging) => {
           if (isCharging) {
-            this.ui.applyVisuals(item.card, this.mode);
+            if (this.mode === 'off') {
+              this.ui.applyBadge(item.card);
+            } else {
+              this.ui.applyVisuals(item.card, this.mode);
+            }
           } else {
             this.ui.markSafe(item.card);
           }

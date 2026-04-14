@@ -54,9 +54,7 @@ export const ChargingBlockerModule: Module = {
       currentMode = (val || 'hide') as string;
 
       scanner.updateMode(currentMode);
-      if (currentMode !== 'off') {
-        start();
-      }
+      start();
     });
 
     // 2. 监听配置变化
@@ -70,11 +68,9 @@ export const ChargingBlockerModule: Module = {
         currentMode = newVal as string;
         scanner.updateMode(currentMode);
 
-        // 重启以应用新模式（例如从“隐藏”切换到“遮罩”）
+        // 重启以应用新模式（例如从“隐藏”切换到“遮罩”或“关闭/显示角标”）
         stop();
-        if (currentMode !== 'off') {
-          start();
-        }
+        start();
       }
     });
   }

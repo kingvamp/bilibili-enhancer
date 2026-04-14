@@ -9,16 +9,19 @@ import { STORAGE_KEYS } from '../constants';
 const MENU_STYLE = `
 #gemini-floating-filter {
     position: fixed;
-    right: 20px;
-    bottom: 80px;
+    left: 50%;
+    top: 150px;
+    transform: translateX(-50%);
     z-index: 10001;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: center;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    pointer-events: none;
 }
 
 #gemini-filter-toggle {
+    pointer-events: auto;
     width: 48px;
     height: 48px;
     border-radius: 24px;
@@ -39,76 +42,99 @@ const MENU_STYLE = `
     background: rgba(251, 114, 153, 1);
 }
 
-#gemini-filter-panel {
-    position: absolute;
-    bottom: 60px;
-    right: 0;
-    width: 280px;
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    padding: 20px;
-    transform: translateY(20px) scale(0.9);
+#gemini-filter-toggle.hidden {
     opacity: 0;
     pointer-events: none;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform-origin: bottom right;
+    transform: scale(0.5);
+}
+
+#gemini-filter-panel {
+    pointer-events: auto;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px) scale(0.9);
+    width: max-content;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 12px 64px rgba(0, 0, 0, 0.15);
+    padding: 12px 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 #gemini-filter-panel.active {
-    transform: translateY(0) scale(1);
+    transform: translateX(-50%) translateY(0) scale(1);
     opacity: 1;
     pointer-events: auto;
-}
-
-.gemini-filter-section {
-    margin-bottom: 20px;
-}
-
-.gemini-filter-section:last-child {
-    margin-bottom: 0;
-}
-
-.gemini-filter-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
 .gemini-filter-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
+    gap: 14px;
+    white-space: nowrap;
 }
 
 .gemini-filter-label {
     font-size: 13px;
-    color: #4b5563;
+    font-weight: 700;
+    color: #1f2937;
+    min-width: 60px;
 }
 
-.gemini-filter-input-group {
+.gemini-filter-group {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+}
+
+.gemini-divider-v {
+    width: 1px;
+    height: 14px;
+    background: rgba(0, 0, 0, 0.08);
+}
+
+#gemini-filter-close {
+    margin-left: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.04);
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#gemini-filter-close:hover {
+    background: rgba(251, 114, 153, 0.1);
+    color: #fb7299;
+}
+
+.gemini-sub-label {
+    font-size: 12px;
+    color: #6b7280;
 }
 
 .gemini-filter-input {
-    width: 60px;
+    width: 55px;
     padding: 4px 8px;
     border-radius: 6px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.6);
     font-size: 12px;
     outline: none;
-    transition: border-color 0.2s;
+    text-align: center;
 }
 
 .gemini-filter-input:focus {
@@ -119,8 +145,8 @@ const MENU_STYLE = `
 .gemini-switch {
     position: relative;
     display: inline-block;
-    width: 36px;
-    height: 20px;
+    width: 32px;
+    height: 18px;
 }
 
 .gemini-switch input {
@@ -136,16 +162,16 @@ const MENU_STYLE = `
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #cbd5e1;
+    background-color: #e2e8f0;
     transition: .4s;
-    border-radius: 20px;
+    border-radius: 18px;
 }
 
 .gemini-slider:before {
     position: absolute;
     content: "";
-    height: 16px;
-    width: 16px;
+    height: 14px;
+    width: 14px;
     left: 2px;
     bottom: 2px;
     background-color: white;
@@ -158,26 +184,45 @@ input:checked + .gemini-slider {
 }
 
 input:checked + .gemini-slider:before {
-    transform: translateX(16px);
+    transform: translateX(14px);
 }
 
 .gemini-select {
-    padding: 4px 8px;
+    padding: 3px 6px;
     border-radius: 6px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.6);
     font-size: 12px;
     outline: none;
     cursor: pointer;
 }
 
-.gemini-filter-footer {
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
+.gemini-segmented {
+    display: flex;
+    background: rgba(0, 0, 0, 0.04);
+    padding: 2px;
+    border-radius: 9px;
+    gap: 1px;
+}
+
+.gemini-segment-item {
+    padding: 3px 10px;
     font-size: 11px;
-    color: #9ca3af;
-    text-align: center;
+    font-weight: 500;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #6b7280;
+}
+
+.gemini-segment-item:hover {
+    color: #fb7299;
+}
+
+.gemini-segment-item.active {
+    background: white;
+    color: #fb7299;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 `;
 
@@ -205,27 +250,22 @@ function createMenu() {
     container.id = 'gemini-floating-filter';
     container.innerHTML = `
         <div id="gemini-filter-panel">
-            <div class="gemini-filter-section">
-                <div class="gemini-filter-title">
-                    <span>⏱️</span> 时长筛选
+            <div class="gemini-filter-row">
+                <span class="gemini-filter-label">时长筛选</span>
+                <label class="gemini-switch">
+                    <input type="checkbox" id="gemini-duration-enable">
+                    <span class="gemini-slider"></span>
+                </label>
+                <div class="gemini-divider-v"></div>
+                <div class="gemini-filter-group">
+                    <span class="gemini-sub-label">范围</span>
+                    <input type="number" id="gemini-duration-min" class="gemini-filter-input" placeholder="0">
+                    <span style="color:#cbd5e1">-</span>
+                    <input type="number" id="gemini-duration-max" class="gemini-filter-input" placeholder="∞">
                 </div>
-                <div class="gemini-filter-row">
-                    <span class="gemini-filter-label">启用功能</span>
-                    <label class="gemini-switch">
-                        <input type="checkbox" id="gemini-duration-enable">
-                        <span class="gemini-slider"></span>
-                    </label>
-                </div>
-                <div class="gemini-filter-row">
-                    <span class="gemini-filter-label">时长范围 (秒)</span>
-                    <div class="gemini-filter-input-group">
-                        <input type="number" id="gemini-duration-min" class="gemini-filter-input" placeholder="最小">
-                        <span style="color:#9ca3af">-</span>
-                        <input type="number" id="gemini-duration-max" class="gemini-filter-input" placeholder="最大">
-                    </div>
-                </div>
-                <div class="gemini-filter-row">
-                    <span class="gemini-filter-label">过滤模式</span>
+                <div class="gemini-divider-v"></div>
+                <div class="gemini-filter-group">
+                    <span class="gemini-sub-label">模式</span>
                     <select id="gemini-duration-mode" class="gemini-select">
                         <option value="hide">完全隐藏</option>
                         <option value="dim">半透明</option>
@@ -233,22 +273,18 @@ function createMenu() {
                 </div>
             </div>
 
-            <div class="gemini-filter-section">
-                <div class="gemini-filter-title">
-                    <span>⚡</span> 充电拦截
+            <div class="gemini-filter-row">
+                <span class="gemini-filter-label">充电拦截</span>
+                <div class="gemini-segmented" id="gemini-charging-segmented">
+                    <div class="gemini-segment-item" data-value="off">已关闭</div>
+                    <div class="gemini-segment-item" data-value="mask">显示遮罩</div>
+                    <div class="gemini-segment-item" data-value="hide">完全隐藏</div>
                 </div>
-                <div class="gemini-filter-row">
-                    <span class="gemini-filter-label">拦截模式</span>
-                    <select id="gemini-charging-mode" class="gemini-select">
-                        <option value="off">关闭</option>
-                        <option value="mask">遮罩提示</option>
-                        <option value="hide">完全隐藏</option>
-                    </select>
+                <div id="gemini-filter-close" title="收起面板">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="18 15 12 9 6 15"></polyline>
+                    </svg>
                 </div>
-            </div>
-
-            <div class="gemini-filter-footer">
-                Bilibili Enhancer · 实验室功能
             </div>
         </div>
         <div id="gemini-filter-toggle" title="展开筛选菜单">
@@ -262,20 +298,34 @@ function createMenu() {
 
     const toggle = document.getElementById('gemini-filter-toggle')!;
     const panel = document.getElementById('gemini-filter-panel')!;
+    const closeBtn = document.getElementById('gemini-filter-close')!;
 
     toggle.addEventListener('click', (e) => {
         e.stopPropagation();
-        panel.classList.toggle('active');
+        panel.classList.add('active');
+        toggle.classList.add('hidden');
     });
 
-    document.addEventListener('click', (e) => {
-        if (!container.contains(e.target as Node)) {
-            panel.classList.remove('active');
-        }
+    closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        panel.classList.remove('active');
+        toggle.classList.remove('hidden');
     });
 
     // 绑定数据
     bindData();
+}
+
+function updateSegment(id: string, value: string) {
+    const parent = document.getElementById(id);
+    if (!parent) return;
+    parent.querySelectorAll('.gemini-segment-item').forEach(item => {
+        if ((item as HTMLElement).dataset.value === value) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
 }
 
 function bindData() {
@@ -283,7 +333,6 @@ function bindData() {
     const durationMin = document.getElementById('gemini-duration-min') as HTMLInputElement;
     const durationMax = document.getElementById('gemini-duration-max') as HTMLInputElement;
     const durationMode = document.getElementById('gemini-duration-mode') as HTMLSelectElement;
-    const chargingMode = document.getElementById('gemini-charging-mode') as HTMLSelectElement;
 
     const keys = [
         STORAGE_KEYS.DURATION_FILTER_ENABLE,
@@ -301,7 +350,7 @@ function bindData() {
         
         let cMode = res[STORAGE_KEYS.HIDE_CHARGING] as string | boolean;
         if (typeof cMode === 'boolean') cMode = cMode ? 'hide' : 'off';
-        chargingMode.value = (cMode as string) || 'off';
+        updateSegment('gemini-charging-segmented', (cMode as string) || 'off');
     });
 
     // 监听输入并更新
@@ -321,8 +370,12 @@ function bindData() {
         chrome.storage.sync.set({ [STORAGE_KEYS.DURATION_FILTER_MODE]: durationMode.value });
     });
 
-    chargingMode.addEventListener('change', () => {
-        chrome.storage.sync.set({ [STORAGE_KEYS.HIDE_CHARGING]: chargingMode.value });
+    // 分段选择器事件
+    document.querySelectorAll('#gemini-charging-segmented .gemini-segment-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const val = (item as HTMLElement).dataset.value;
+            chrome.storage.sync.set({ [STORAGE_KEYS.HIDE_CHARGING]: val });
+        });
     });
 
     // 监听外部存储变化（例如从 Popup 修改）
@@ -342,7 +395,7 @@ function bindData() {
         if (changes[STORAGE_KEYS.HIDE_CHARGING]) {
             let newVal = changes[STORAGE_KEYS.HIDE_CHARGING].newValue;
             if (typeof newVal === 'boolean') newVal = newVal ? 'hide' : 'off';
-            chargingMode.value = newVal as string;
+            updateSegment('gemini-charging-segmented', newVal as string);
         }
     });
 }
