@@ -10,6 +10,7 @@ import { ChargingBlockerModule } from './modules/chargingBlocker';
 import { DurationFilterModule } from './modules/durationFilter';
 import { OneClickFavoriteModule } from './modules/oneClickFavorite';
 import { FloatingFilterMenuModule } from './modules/FloatingFilterMenu';
+import { InteractionFilterModule } from './modules/interactionFilter';
 
 // === 第一部分：封面预览 (全局功能) ===
 // 它不依赖播放器 UI，直接启动。
@@ -21,6 +22,7 @@ ChargingBlockerModule.init();
 DurationFilterModule.init();
 OneClickFavoriteModule.init();
 FloatingFilterMenuModule.init();
+InteractionFilterModule.init();
 import { ToolbarManager } from './services/toolbarManager';
 
 // === 视频页专用功能 ===

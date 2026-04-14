@@ -30,7 +30,12 @@ export const STORAGE_KEYS = {
 
     // === 新增：一键收藏相关 ===
     ONE_CLICK_FAVORITE: 'enable_one_click_favorite', // 开关：一键收藏
-    DEFAULT_FAV_FOLDER_ID: 'default_fav_folder_id'   // 缓存：默认收藏夹 ID
+    DEFAULT_FAV_FOLDER_ID: 'default_fav_folder_id',   // 缓存：默认收藏夹 ID
+
+    // === 新增：状态过滤相关 ===
+    FILTER_LIKED: 'filter_liked_videos',      // 过滤已点赞
+    FILTER_FAVORITED: 'filter_favorited_videos', // 过滤已收藏
+    FILTER_DOWNLOADED: 'filter_downloaded_videos' // 过滤已下载
 };
 
 // === 新增：DOM 元素 ID 常量 ===

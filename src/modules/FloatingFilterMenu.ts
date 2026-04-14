@@ -224,6 +224,27 @@ input:checked + .gemini-slider:before {
     color: #fb7299;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
+
+.gemini-checkbox-group {
+    display: flex;
+    gap: 12px;
+}
+
+.gemini-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #4b5563;
+    cursor: pointer;
+    user-select: none;
+}
+
+.gemini-checkbox-item input {
+    accent-color: #fb7299;
+    cursor: pointer;
+    margin: 0;
+}
 `;
 
 
@@ -270,6 +291,24 @@ function createMenu() {
                         <option value="hide">完全隐藏</option>
                         <option value="dim">半透明</option>
                     </select>
+                </div>
+            </div>
+
+            <div class="gemini-filter-row">
+                <span class="gemini-filter-label">互动过滤</span>
+                <div class="gemini-checkbox-group">
+                    <label class="gemini-checkbox-item">
+                        <input type="checkbox" id="gemini-filter-liked">
+                        <span>已点赞</span>
+                    </label>
+                    <label class="gemini-checkbox-item">
+                        <input type="checkbox" id="gemini-filter-favorited">
+                        <span>已收藏</span>
+                    </label>
+                    <label class="gemini-checkbox-item">
+                        <input type="checkbox" id="gemini-filter-downloaded">
+                        <span>已下载</span>
+                    </label>
                 </div>
             </div>
 
@@ -334,12 +373,19 @@ function bindData() {
     const durationMax = document.getElementById('gemini-duration-max') as HTMLInputElement;
     const durationMode = document.getElementById('gemini-duration-mode') as HTMLSelectElement;
 
+    const filterLiked = document.getElementById('gemini-filter-liked') as HTMLInputElement;
+    const filterFavorited = document.getElementById('gemini-filter-favorited') as HTMLInputElement;
+    const filterDownloaded = document.getElementById('gemini-filter-downloaded') as HTMLInputElement;
+
     const keys = [
         STORAGE_KEYS.DURATION_FILTER_ENABLE,
         STORAGE_KEYS.DURATION_FILTER_MIN,
         STORAGE_KEYS.DURATION_FILTER_MAX,
         STORAGE_KEYS.DURATION_FILTER_MODE,
-        STORAGE_KEYS.HIDE_CHARGING
+        STORAGE_KEYS.HIDE_CHARGING,
+        STORAGE_KEYS.FILTER_LIKED,
+        STORAGE_KEYS.FILTER_FAVORITED,
+        STORAGE_KEYS.FILTER_DOWNLOADED
     ];
 
     chrome.storage.sync.get(keys, (res) => {
@@ -348,6 +394,10 @@ function bindData() {
         durationMax.value = (res[STORAGE_KEYS.DURATION_FILTER_MAX] as number)?.toString() || '';
         durationMode.value = (res[STORAGE_KEYS.DURATION_FILTER_MODE] as string) || 'hide';
         
+        filterLiked.checked = !!res[STORAGE_KEYS.FILTER_LIKED];
+        filterFavorited.checked = !!res[STORAGE_KEYS.FILTER_FAVORITED];
+        filterDownloaded.checked = !!res[STORAGE_KEYS.FILTER_DOWNLOADED];
+
         let cMode = res[STORAGE_KEYS.HIDE_CHARGING] as string | boolean;
         if (typeof cMode === 'boolean') cMode = cMode ? 'hide' : 'off';
         updateSegment('gemini-charging-segmented', (cMode as string) || 'off');
@@ -368,6 +418,18 @@ function bindData() {
 
     durationMode.addEventListener('change', () => {
         chrome.storage.sync.set({ [STORAGE_KEYS.DURATION_FILTER_MODE]: durationMode.value });
+    });
+
+    filterLiked.addEventListener('change', () => {
+        chrome.storage.sync.set({ [STORAGE_KEYS.FILTER_LIKED]: filterLiked.checked });
+    });
+
+    filterFavorited.addEventListener('change', () => {
+        chrome.storage.sync.set({ [STORAGE_KEYS.FILTER_FAVORITED]: filterFavorited.checked });
+    });
+
+    filterDownloaded.addEventListener('change', () => {
+        chrome.storage.sync.set({ [STORAGE_KEYS.FILTER_DOWNLOADED]: filterDownloaded.checked });
     });
 
     // 分段选择器事件
@@ -392,6 +454,17 @@ function bindData() {
         if (changes[STORAGE_KEYS.DURATION_FILTER_MODE]) {
             durationMode.value = changes[STORAGE_KEYS.DURATION_FILTER_MODE].newValue as string;
         }
+
+        if (changes[STORAGE_KEYS.FILTER_LIKED]) {
+            filterLiked.checked = !!changes[STORAGE_KEYS.FILTER_LIKED].newValue;
+        }
+        if (changes[STORAGE_KEYS.FILTER_FAVORITED]) {
+            filterFavorited.checked = !!changes[STORAGE_KEYS.FILTER_FAVORITED].newValue;
+        }
+        if (changes[STORAGE_KEYS.FILTER_DOWNLOADED]) {
+            filterDownloaded.checked = !!changes[STORAGE_KEYS.FILTER_DOWNLOADED].newValue;
+        }
+
         if (changes[STORAGE_KEYS.HIDE_CHARGING]) {
             let newVal = changes[STORAGE_KEYS.HIDE_CHARGING].newValue;
             if (typeof newVal === 'boolean') newVal = newVal ? 'hide' : 'off';
