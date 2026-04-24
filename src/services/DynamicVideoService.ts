@@ -54,6 +54,43 @@ export class DynamicVideoService {
     }
 
     /**
+     * 缓存管理：保存当前状态到 session
+     */
+    public saveStateToSession(mid: number, videos: BiliDynamicVideo[]) {
+        const key = `bili_enhanced_dynamic_cache_${mid}`;
+        const state = {
+            videos,
+            offset: this.offset,
+            hasMore: this.hasMore,
+            timestamp: Date.now()
+        };
+        sessionStorage.setItem(key, JSON.stringify(state));
+    }
+
+    /**
+     * 缓存管理：从 session 恢复状态
+     */
+    public loadStateFromSession(mid: number): { videos: BiliDynamicVideo[] } | null {
+        const key = `bili_enhanced_dynamic_cache_${mid}`;
+        const raw = sessionStorage.getItem(key);
+        if (!raw) return null;
+
+        try {
+            const state = JSON.parse(raw);
+            // 缓存 30 分钟内有效
+            if (Date.now() - state.timestamp > 30 * 60 * 1000) {
+                sessionStorage.removeItem(key);
+                return null;
+            }
+            this.offset = state.offset;
+            this.hasMore = state.hasMore;
+            return { videos: state.videos };
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
      * 将原始动态列表映射为视频格式
      */
     private mapDynamicsToVideos(items: any[]): BiliDynamicVideo[] {
