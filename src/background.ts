@@ -108,6 +108,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 
+    // 2. 新增：获取个人空间动态 (抓取动态视频)
+    if (request.action === 'fetchSpaceDynamics') {
+        console.log('[Background] Action: fetchSpaceDynamics, MID:', request.mid);
+        const { mid, offset } = request;
+        const url = `https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?host_mid=${mid}${offset ? `&offset=${offset}` : ''}`;
+        
+        fetch(url, { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                console.log('[Background] fetchSpaceDynamics response data code:', data?.code);
+                sendResponse({ success: true, data: data });
+            })
+            .catch(err => {
+                console.error('[Background] fetchSpaceDynamics error:', err);
+                sendResponse({ success: false, error: err.toString() });
+            });
+        
+        return true;
+    }
+
     // === 新增：一键收藏相关已被转移至 content.ts 直接处理 ===
     // (因为 Service Worker 的 Origin 和 Referer 无法彻底欺骗 B 站的 WAF)
     

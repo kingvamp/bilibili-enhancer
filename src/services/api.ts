@@ -74,5 +74,21 @@ export const ApiService = {
         if (maxDim >= 1920) return { text: '1080P', class: 'res-normal' };
         if (maxDim >= 1280) return { text: '720P', class: 'res-normal' };
         return { text: 'SD', class: 'res-normal' };
+    },
+    
+    /**
+     * 获取空间动态列表
+     */
+    async fetchSpaceDynamics(mid: number, offset: string = ''): Promise<any> {
+        if (!chrome.runtime?.id) return null;
+        return new Promise((resolve) => {
+            chrome.runtime.sendMessage({ action: 'fetchSpaceDynamics', mid, offset }, res => {
+                if (res && res.success) {
+                    resolve(res.data);
+                } else {
+                    resolve(null);
+                }
+            });
+        });
     }
 };

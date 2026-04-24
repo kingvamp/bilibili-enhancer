@@ -11,6 +11,7 @@ import { DurationFilterModule } from './modules/durationFilter';
 import { OneClickFavoriteModule } from './modules/oneClickFavorite';
 import { FloatingFilterMenuModule } from './modules/FloatingFilterMenu';
 import { InteractionFilterModule } from './modules/interactionFilter';
+import { SpaceDynamicModule } from './modules/SpaceDynamicModule';
 
 // === 第一部分：封面预览 (全局功能) ===
 // 它不依赖播放器 UI，直接启动。
@@ -23,6 +24,7 @@ DurationFilterModule.init();
 OneClickFavoriteModule.init();
 FloatingFilterMenuModule.init();
 InteractionFilterModule.init();
+SpaceDynamicModule.init();
 import { ToolbarManager } from './services/toolbarManager';
 
 // === 视频页专用功能 ===

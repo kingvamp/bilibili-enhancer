@@ -9,7 +9,9 @@
 - **机制**：由单一 `MutationObserver` 驱动，识别视频卡片并分发给各功能模块。
 - **视觉控制**：集中管理卡片的视觉状态（隐藏、遮罩、透明），处理多重过滤规则的冲突优先级。
 
-### 2. VideoDataCenter (`src/services/DataCenter.ts`)
+### 2. VideoDataCenter- `src/services/DataCenter.ts`: 统一数据缓存中心。
+- `src/services/DynamicVideoService.ts`: 动态视频抓取与数据脱敏映射。
+- `src/modules/SpaceDynamicModule.ts`: 个人空间增强模块，处理侧边栏注入与动态列表渲染。
 - **职责**：全站视频数据中心。
 - **功能**：
     - **全局缓存**：为点赞、收藏、分辨率等数据提供单例级别的静态缓存。

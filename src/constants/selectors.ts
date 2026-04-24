@@ -151,5 +151,36 @@ export const SELECTORS = {
             '.fav-detail',
             '.fav-info'
         ]
+    },
+
+    // 个人空间相关
+    SPACE: {
+        // 侧边栏分类列表容器
+        SIDEBAR_NAV: [
+            '.upload-sidenav .side-nav',
+            '.side-nav',
+            '.contribution-side',
+            '.contribution-side-nav',
+            '.contribution-sidebar .main-list',
+            '.video-list .article-list',
+            '.contribution-sidebar ul',
+            '.sidebar-list'
+        ],
+        // 侧边栏列表项
+        SIDEBAR_ITEM: '.item, li',
+        // 激活态类名
+        ACTIVE_CLASS: 'on',
+        // 视频列表主容器
+        VIDEO_LIST_CONTAINER: [
+            '.contribution-list-container',
+            '.v-list',
+            '.v-list-container',
+            '.upload-video-list',
+            '#submit-video-list .item-list',
+            '.section-right',
+            '.video-list',
+            '.article-list',
+            '.cube-list'
+        ]
     }
 };
