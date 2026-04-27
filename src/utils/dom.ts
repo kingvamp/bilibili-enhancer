@@ -10,7 +10,7 @@ import { SELECTORS } from '../constants/selectors';
  */
 export function extractBvid(url: string | null): string | null {
     if (!url) return null;
-    const match = url.match(/(BV[a-zA-Z0-9]{10})/i);
+    const match = url.match(/(BV[a-zA-Z0-9]{10})/);
     return match ? match[1] : null;
 }
 

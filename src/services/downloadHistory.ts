@@ -22,7 +22,7 @@ export class DownloadHistoryService {
     private loadFromCache() {
         chrome.storage.local.get(['download_history'], (cache) => {
             if (cache && Array.isArray(cache.download_history)) {
-                this.history = new Set((cache.download_history as string[]).map(id => id.toUpperCase()));
+                this.history = new Set(cache.download_history as string[]);
                 this.notify();
             }
         });
@@ -38,10 +38,10 @@ export class DownloadHistoryService {
             try {
                 chrome.runtime.sendMessage({ action: 'fetchDownloadHistory' }, res => {
                     if (res && res.success && Array.isArray(res.data)) {
-                        this.history = new Set(res.data.map((id: string) => id.toUpperCase()));
+                        this.history = new Set(res.data);
                         this.notify();
                     } else if (res && res.cachedData) {
-                        this.history = new Set(res.cachedData.map((id: string) => id.toUpperCase()));
+                        this.history = new Set(res.cachedData);
                         this.notify();
                     }
                     resolve(this.history);
@@ -54,7 +54,7 @@ export class DownloadHistoryService {
     }
 
     public has(bvid: string): boolean {
-        return this.history.has(bvid.toUpperCase());
+        return this.history.has(bvid);
     }
 
     public subscribe(callback: (history: Set<string>) => void) {

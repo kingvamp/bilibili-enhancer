@@ -72,7 +72,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             .then(res => {
                 if (res.success && Array.isArray(res.data)) {
                     // 持久化存储到 local，以便离线使用
-                    const normalizedData = res.data.map((id: string) => id.toUpperCase());
+                    const normalizedData = res.data;
                     chrome.storage.local.set({ download_history: normalizedData });
                     sendResponse({ success: true, data: normalizedData });
                 } else {
