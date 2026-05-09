@@ -358,6 +358,37 @@ input:checked+.slider:before {
     font-size: 14px;
 }
 
+.secondary-btn {
+    background-color: #f1f2f3;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+}
+
+.secondary-btn:hover {
+    background-color: #e3e5e7;
+    border-color: #ccd0d3;
+}
+
+.secondary-btn:active {
+    background-color: #d8dadc;
+}
+
+.small-btn {
+    padding: 6px 8px;
+    font-size: 12px;
+    margin-top: 0;
+}
+
+.btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.btn-row .btn {
+    flex: 1;
+}
+
 .input-row {
     display: flex;
     align-items: center;

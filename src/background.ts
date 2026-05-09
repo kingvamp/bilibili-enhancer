@@ -66,7 +66,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     // 2. 新增：从本地服务获取下载历史
     if (request.action === 'fetchDownloadHistory') {
-        const url = 'http://127.0.0.1:6889/history';
+        const url = 'http://127.0.0.1:16889/history';
         fetch(url)
             .then(res => res.json())
             .then(res => {
@@ -81,14 +81,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             })
             .catch(err => {
                 // 如果请求失败（下载器没开），尝试返回缓存
+                console.warn('[Background] fetchDownloadHistory failed:', err);
+                let errorMsg = err.toString();
+                if (errorMsg.includes('Failed to fetch')) {
+                    errorMsg = '无法连接到下载器服务';
+                }
                 chrome.storage.local.get(['download_history'], (cache) => {
                     sendResponse({ 
                         success: false, 
-                        error: err.toString(), 
+                        error: errorMsg, 
                         cachedData: cache.download_history || [] 
                     });
                 });
             });
+        return true;
+    }
+
+    // 新增：清空插件本地下载记录缓存
+    if (request.action === 'clearDownloadHistory') {
+        chrome.storage.local.set({ download_history: [] }, () => {
+            sendResponse({ success: true });
+        });
         return true;
     }
 

@@ -40,6 +40,10 @@ const chargingRadios = document.querySelectorAll('input[name="charging-mode"]');
 const toggleHighlight = document.getElementById('toggle-highlight') as HTMLInputElement;
 const btnUpdate = document.getElementById('btn-force-update') as HTMLButtonElement;
 
+// 下载记录增强
+const btnUpdateHistory = document.getElementById('btn-update-history') as HTMLButtonElement;
+const btnClearHistory = document.getElementById('btn-clear-history') as HTMLButtonElement;
+
 
 // 时长筛选
 const toggleDurationFilter = document.getElementById('toggle-duration-filter') as HTMLInputElement;
@@ -276,6 +280,48 @@ function updateDownloadedCount() {
 }
 
 updateDownloadedCount();
+    
+if (btnUpdateHistory) {
+    btnUpdateHistory.addEventListener('click', () => {
+        const originalHTML = btnUpdateHistory.innerHTML;
+        btnUpdateHistory.innerText = "同步中...";
+        btnUpdateHistory.disabled = true;
+        
+        chrome.runtime.sendMessage({ action: 'fetchDownloadHistory' }, (res) => {
+            if (res && res.success) {
+                updateDownloadedCount();
+            } else {
+                alert('更新失败: ' + (res?.error || '未知错误'));
+            }
+            setTimeout(() => {
+                btnUpdateHistory.innerHTML = originalHTML;
+                btnUpdateHistory.disabled = false;
+            }, 1000);
+        });
+    });
+}
+
+if (btnClearHistory) {
+    btnClearHistory.addEventListener('click', () => {
+        if (!confirm('确定要清空插件本地的下载记录缓存吗？\n(注意：这不会删除下载器中的原始记录，下次同步时记录会恢复)')) return;
+        
+        const originalHTML = btnClearHistory.innerHTML;
+        btnClearHistory.innerText = "清理中...";
+        btnClearHistory.disabled = true;
+        
+        chrome.runtime.sendMessage({ action: 'clearDownloadHistory' }, (res) => {
+            if (res && res.success) {
+                updateDownloadedCount();
+            } else {
+                alert('清空失败: ' + (res?.error || '未知错误'));
+            }
+            setTimeout(() => {
+                btnClearHistory.innerHTML = originalHTML;
+                btnClearHistory.disabled = false;
+            }, 1000);
+        });
+    });
+}
 
 
 // === 11. 页脚功能 ===
