@@ -64,9 +64,6 @@ export class PageScanner {
             const bvid = extractBvid(anchor.href);
             if (!bvid) return;
 
-            if (location.href.includes('watchlater')) {
-                console.log(`[WatchLater] Discovered link: ${bvid}`, anchor.href);
-            }
 
             // 如果已经处理过，检查标识位（Marker）是否还在
             // 如果 B 站进行了一次大的重渲染，虽然外层 Anchor 还在，但内部可能已经被清空了

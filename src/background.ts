@@ -23,7 +23,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 }
             })
             .then(data => {
-                console.log('[Background] fetchVideoInfo for', request.bvid, 'Response:', data);
+
                 sendResponse({ success: true, data: data });
             })
             .catch(err => {
@@ -110,14 +110,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     // 2. 新增：获取个人空间动态 (抓取动态视频)
     if (request.action === 'fetchSpaceDynamics') {
-        console.log('[Background] Action: fetchSpaceDynamics, MID:', request.mid);
+
         const { mid, offset } = request;
         const url = `https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?host_mid=${mid}${offset ? `&offset=${offset}` : ''}`;
         
         fetch(url, { credentials: 'include' })
             .then(res => res.json())
             .then(data => {
-                console.log('[Background] fetchSpaceDynamics response data code:', data?.code);
+
                 sendResponse({ success: true, data: data });
             })
             .catch(err => {
