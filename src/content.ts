@@ -12,6 +12,7 @@ import { OneClickFavoriteModule } from './modules/oneClickFavorite';
 import { FloatingFilterMenuModule } from './modules/FloatingFilterMenu';
 import { InteractionFilterModule } from './modules/interactionFilter';
 import { SpaceDynamicModule } from './modules/SpaceDynamicModule';
+import { FilterEngine } from './services/FilterEngine';
 
 // === 第一部分：封面预览 (全局功能) ===
 // 它不依赖播放器 UI，直接启动。
@@ -55,13 +56,9 @@ const Core = (() => {
             }
         }
     }
-    // 监听 DOM 变化，因为 B 站是单页应用(SPA)，播放器可能是后加载出来的
-    const observer = new MutationObserver(() => {
-        if (!chrome.runtime?.id) {
-            observer.disconnect();
-            return;
-        }
+    // 通过 FilterEngine 的统一 Observer 监听 DOM 变化，因为 B 站是单页应用(SPA)，播放器可能是后加载出来的
+    FilterEngine.getInstance().onMutation(() => {
+        if (!chrome.runtime?.id) return;
         check();
     });
-    observer.observe(document.body, { childList: true, subtree: true });
 })();

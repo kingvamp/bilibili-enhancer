@@ -1,6 +1,7 @@
 import { SELECTORS } from '../constants/selectors';
 import { DynamicVideoService, BiliDynamicVideo } from '../services/DynamicVideoService';
 import { extractUid } from '../utils/dom';
+import { FilterEngine } from '../services/FilterEngine';
 
 /**
  * 空间动态视频模块
@@ -38,13 +39,13 @@ export const SpaceDynamicModule = {
     },
 
     startObserver() {
-        const observer = new MutationObserver(() => {
+        // 通过 FilterEngine 的统一 Observer 监听 DOM 变化
+        FilterEngine.getInstance().onMutation(() => {
             // 支持在 /upload 及其子目录下注入，不再局限于 /video
             if (location.href.includes('/upload') || location.href.includes('/video')) {
                 this.injectSidebarItem();
             }
         });
-        observer.observe(document.body, { childList: true, subtree: true });
         
         if (location.href.includes('/upload') || location.href.includes('/video')) {
             this.injectSidebarItem();

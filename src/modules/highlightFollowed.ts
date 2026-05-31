@@ -4,6 +4,7 @@ import { showToast } from '../utils/toast';
 import { SELECTORS } from '../constants/selectors';
 import { extractUid } from '../utils/dom';
 import { debounce } from '../utils/common';
+import { FilterEngine } from '../services/FilterEngine';
 
 const STORAGE_KEY_ENABLE = 'enable_highlight_follow';
 const STORAGE_KEY_LIST = 'follow_list_cache';
@@ -183,18 +184,14 @@ function start() {
     // 初始化时尝试同步（读取缓存或更新）
     syncFollowList(false);
 
-    // 监听 DOM 变化持续高亮
-    const observer = new MutationObserver(() => {
+    // 通过 FilterEngine 的统一 Observer 监听 DOM 变化
+    FilterEngine.getInstance().onMutation(() => {
         if (!chrome.runtime?.id) {
-            observer.disconnect();
             isRunning = false;
             return;
         }
         debouncedHighlight();
     });
-    observer.observe(document.body, { childList: true, subtree: true });
-    
-    // 保存 observer 引用以便 stop 时断开 (这里简化处理，暂未保存，仅用 isRunning 控制逻辑)
 }
 
 function stop() {

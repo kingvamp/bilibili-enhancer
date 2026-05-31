@@ -28,7 +28,9 @@ export class FilterEngine {
     private states: Map<HTMLElement, CardState> = new Map();
     private observer: MutationObserver | null = null;
     private scanListeners: ((card: HTMLElement, bvid: string | null) => void)[] = [];
+    private mutationListeners: (() => void)[] = [];
     private scanTimeout: number | undefined;
+    private scanStarted = false;
 
     private constructor() {}
 
@@ -40,12 +42,40 @@ export class FilterEngine {
     }
 
     /**
-     * 注册扫描监听器
+     * 注册扫描监听器（视频卡片级别）
      */
     public onScan(callback: (card: HTMLElement, bvid: string | null) => void) {
         this.scanListeners.push(callback);
-        // 如果已经启动，立即扫一遍
-        if (this.observer) this.scan();
+        // 如果扫描已启动，立即扫一遍
+        if (this.scanStarted) this.scan();
+    }
+
+    /**
+     * 注册通用 DOM 变化监听器，避免各模块各自创建 MutationObserver
+     */
+    public onMutation(callback: () => void) {
+        this.mutationListeners.push(callback);
+        this.ensureObserver();
+    }
+
+    /**
+     * 确保全局唯一 MutationObserver 已启动（幂等）
+     */
+    private ensureObserver() {
+        if (this.observer) return;
+
+        this.observer = new MutationObserver((mutations) => {
+            // 通知通用 DOM 变化监听器
+            for (const cb of this.mutationListeners) {
+                cb();
+            }
+
+            // 仅当扫描已启动且有新增节点时，触发视频卡片扫描
+            if (this.scanStarted && mutations.some(m => m.addedNodes.length > 0)) {
+                this.debouncedScan();
+            }
+        });
+        this.observer.observe(document.body, { childList: true, subtree: true });
     }
 
     /**
@@ -66,18 +96,14 @@ export class FilterEngine {
     }
 
     /**
-     * 启动统一扫描引擎
+     * 启动视频卡片扫描引擎
      */
     public start() {
-        if (this.observer) return;
+        if (this.scanStarted) return;
+        this.scanStarted = true;
 
         this.scan();
-        this.observer = new MutationObserver((mutations) => {
-            if (mutations.some(m => m.addedNodes.length > 0)) {
-                this.debouncedScan();
-            }
-        });
-        this.observer.observe(document.body, { childList: true, subtree: true });
+        this.ensureObserver();
 
         // 定期检查（兜底）
         window.setInterval(() => this.scan(), 5000);
@@ -94,11 +120,14 @@ export class FilterEngine {
      * 停止及清理
      */
     public stop() {
-        if (this.observer) {
+        this.scanStarted = false;
+        if (this.scanTimeout) clearTimeout(this.scanTimeout);
+
+        // 仅当没有其他 mutation 监听器时，才断开 Observer
+        if (this.mutationListeners.length === 0 && this.observer) {
             this.observer.disconnect();
             this.observer = null;
         }
-        if (this.scanTimeout) clearTimeout(this.scanTimeout);
         
         // 恢复所有状态
         this.states.forEach((state, card) => {

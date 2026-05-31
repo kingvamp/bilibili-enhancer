@@ -1,9 +1,9 @@
 import { SELECTORS } from '../../constants/selectors';
 import { extractBvid, isInsideExcludedArea, findCoverInElement, hasMarker, findClosestVideoCard } from '../../utils/dom';
+import { FilterEngine } from '../../services/FilterEngine';
 
 export class PageScanner {
     private isRunning = false;
-    private observer: MutationObserver | null = null;
     private viewportObserver: IntersectionObserver | null = null;
 
     constructor(
@@ -40,19 +40,18 @@ export class PageScanner {
 
         this.scan();
 
-        this.observer = new MutationObserver(() => {
+        // 通过 FilterEngine 的统一 Observer 监听 DOM 变化
+        FilterEngine.getInstance().onMutation(() => {
             if (!chrome.runtime?.id) {
                 this.stop();
                 return;
             }
-            this.scan();
+            if (this.isRunning) this.scan();
         });
-        this.observer.observe(document.body, { childList: true, subtree: true });
     }
 
     public stop() {
         this.isRunning = false;
-        this.observer?.disconnect();
         this.viewportObserver?.disconnect();
     }
 
