@@ -3,6 +3,7 @@ import { Module } from '../types';
 import { showToast } from '../utils/toast';
 import { SELECTORS } from '../constants/selectors';
 import { extractUid } from '../utils/dom';
+import { debounce } from '../utils/common';
 
 const STORAGE_KEY_ENABLE = 'enable_highlight_follow';
 const STORAGE_KEY_LIST = 'follow_list_cache';
@@ -170,6 +171,10 @@ async function syncFollowList(force = false): Promise<void> {
 }
 
 // === 模块控制 ===
+
+// 防抖高亮函数，避免 DOM 高频变化时重复执行全量扫描
+const debouncedHighlight = debounce(() => highlight(), 200);
+
 function start() {
     if (isRunning) return;
     isRunning = true;
@@ -185,7 +190,7 @@ function start() {
             isRunning = false;
             return;
         }
-        highlight();
+        debouncedHighlight();
     });
     observer.observe(document.body, { childList: true, subtree: true });
     
