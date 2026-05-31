@@ -6,252 +6,12 @@
 import { Module } from '../types';
 import { STORAGE_KEYS } from '../constants';
 
-const MENU_STYLE = `
-#gemini-floating-filter {
-    position: fixed;
-    left: 50%;
-    top: 150px;
-    transform: translateX(-50%);
-    z-index: 10001;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    pointer-events: none;
-}
 
-#gemini-filter-toggle {
-    pointer-events: auto;
-    width: 48px;
-    height: 48px;
-    border-radius: 24px;
-    background: rgba(251, 114, 153, 0.9);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(251, 114, 153, 0.4);
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-#gemini-filter-toggle:hover {
-    transform: scale(1.1) rotate(15deg);
-    background: rgba(251, 114, 153, 1);
-}
-
-#gemini-filter-toggle.hidden {
-    opacity: 0;
-    pointer-events: none;
-    transform: scale(0.5);
-}
-
-#gemini-filter-panel {
-    pointer-events: auto;
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%) translateY(-20px) scale(0.9);
-    width: max-content;
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(24px) saturate(200%);
-    -webkit-backdrop-filter: blur(24px) saturate(200%);
-    border-radius: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 12px 64px rgba(0, 0, 0, 0.15);
-    padding: 12px 20px;
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-#gemini-filter-panel.active {
-    transform: translateX(-50%) translateY(0) scale(1);
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.gemini-filter-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    white-space: nowrap;
-}
-
-.gemini-filter-label {
-    font-size: 13px;
-    font-weight: 700;
-    color: #1f2937;
-    min-width: 60px;
-}
-
-.gemini-filter-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.gemini-divider-v {
-    width: 1px;
-    height: 14px;
-    background: rgba(0, 0, 0, 0.08);
-}
-
-#gemini-filter-close {
-    margin-left: 8px;
-    width: 24px;
-    height: 24px;
-    border-radius: 12px;
-    background: rgba(0, 0, 0, 0.04);
-    color: #6b7280;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-#gemini-filter-close:hover {
-    background: rgba(251, 114, 153, 0.1);
-    color: #fb7299;
-}
-
-.gemini-sub-label {
-    font-size: 12px;
-    color: #6b7280;
-}
-
-.gemini-filter-input {
-    width: 55px;
-    padding: 4px 8px;
-    border-radius: 6px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    background: rgba(255, 255, 255, 0.6);
-    font-size: 12px;
-    outline: none;
-    text-align: center;
-}
-
-.gemini-filter-input:focus {
-    border-color: #fb7299;
-}
-
-/* Switch styling */
-.gemini-switch {
-    position: relative;
-    display: inline-block;
-    width: 32px;
-    height: 18px;
-}
-
-.gemini-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.gemini-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #e2e8f0;
-    transition: .4s;
-    border-radius: 18px;
-}
-
-.gemini-slider:before {
-    position: absolute;
-    content: "";
-    height: 14px;
-    width: 14px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-input:checked + .gemini-slider {
-    background-color: #fb7299;
-}
-
-input:checked + .gemini-slider:before {
-    transform: translateX(14px);
-}
-
-.gemini-select {
-    padding: 3px 6px;
-    border-radius: 6px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    background: rgba(255, 255, 255, 0.6);
-    font-size: 12px;
-    outline: none;
-    cursor: pointer;
-}
-
-.gemini-segmented {
-    display: flex;
-    background: rgba(0, 0, 0, 0.04);
-    padding: 2px;
-    border-radius: 9px;
-    gap: 1px;
-}
-
-.gemini-segment-item {
-    padding: 3px 10px;
-    font-size: 11px;
-    font-weight: 500;
-    border-radius: 7px;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: #6b7280;
-}
-
-.gemini-segment-item:hover {
-    color: #fb7299;
-}
-
-.gemini-segment-item.active {
-    background: white;
-    color: #fb7299;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.gemini-checkbox-group {
-    display: flex;
-    gap: 12px;
-}
-
-.gemini-checkbox-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    color: #4b5563;
-    cursor: pointer;
-    user-select: none;
-}
-
-.gemini-checkbox-item input {
-    accent-color: #fb7299;
-    cursor: pointer;
-    margin: 0;
-}
-`;
 
 
 
 export const FloatingFilterMenuModule: Module = {
     init: () => {
-        injectStyles();
         createMenu();
         startVisibilityMonitor();
     }
@@ -264,7 +24,6 @@ function isPlaybackPage() {
     const path = window.location.pathname;
     return path.startsWith('/video/') || 
            path.startsWith('/bangumi/play/') ||
-           path.includes('/watchlater') ||
            path.startsWith('/list/');
 }
 
@@ -291,13 +50,7 @@ function startVisibilityMonitor() {
     setInterval(check, 1000);
 }
 
-function injectStyles() {
-    if (document.getElementById('gemini-floating-filter-style')) return;
-    const style = document.createElement('style');
-    style.id = 'gemini-floating-filter-style';
-    style.textContent = MENU_STYLE;
-    document.head.appendChild(style);
-}
+
 
 function createMenu() {
     if (document.getElementById('gemini-floating-filter')) return;

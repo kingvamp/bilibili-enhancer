@@ -34,6 +34,7 @@ module.exports = {
         { from: "src/styles/thumbnail.css", to: "thumbnail.css" },
         { from: "src/styles/favorite.css", to: "favorite.css" },
         { from: "src/styles/toolbar.css", to: "toolbar.css" },
+        { from: "src/styles/floatingFilterMenu.css", to: "floatingFilterMenu.css" },
         { from: "src/popup/popup.html", to: "popup.html" },
         { from: "src/popup/popup.css", to: "popup.css" },
         { from: "manifest.json", to: "manifest.json" },
