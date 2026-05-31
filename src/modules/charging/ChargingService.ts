@@ -30,6 +30,7 @@ export class ChargingService {
   private chargingSet = new Set<string>();
   private isBlocked = false;
   private cooldownTimer: number | null = null;
+  private saveCacheTimer: number | null = null;
   private onBlockListeners: (() => void)[] = [];
 
   private constructor() {
@@ -92,6 +93,15 @@ export class ChargingService {
     }
   }
 
+  // 防抖写入：避免每检测一个视频就全量序列化写入 sessionStorage
+  private scheduleSaveCache(): void {
+    if (this.saveCacheTimer) window.clearTimeout(this.saveCacheTimer);
+    this.saveCacheTimer = window.setTimeout(() => {
+      this.saveCache();
+      this.saveCacheTimer = null;
+    }, 1000);
+  }
+
   public isKnownCharging(bvid: string): boolean {
     return this.chargingSet.has(bvid);
   }
@@ -137,16 +147,16 @@ export class ChargingService {
           d.rights?.arc_pay === 1 ||
           d.badge === '充电专属';
 
-        const str = JSON.stringify(d);
-        const hasHiddenPayFlag = str.includes('"is_pay":1') || str.includes('"is_pay":true');
+        // 直接检查已知路径的 is_pay 字段，避免将整个响应对象序列化为字符串
+        const hasHiddenPayFlag = (d.rights as any)?.is_pay === 1 || (d as any).is_pay === 1 || (d as any).is_pay === true;
 
         if (isCharging || hasHiddenPayFlag) {
           this.chargingSet.add(bvid);
-          this.saveCache();
+          this.scheduleSaveCache();
           return true;
         } else {
           this.safeSet.add(bvid);
-          this.saveCache();
+          this.scheduleSaveCache();
           return false;
         }
       }
