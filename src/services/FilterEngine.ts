@@ -114,6 +114,13 @@ export class FilterEngine {
     }
 
     private scan() {
+        // 清理已脱离 DOM 的卡片引用，防止内存泄漏
+        for (const [card] of this.states) {
+            if (!card.isConnected) {
+                this.states.delete(card);
+            }
+        }
+
         const cards = document.querySelectorAll<HTMLElement>(SELECTORS.VIDEO_CARD.ENTITY.join(', '));
         cards.forEach(card => {
             let bvid = null;
