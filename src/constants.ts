@@ -37,6 +37,8 @@ export const STORAGE_KEYS = {
     FILTER_FAVORITED: 'filter_favorited_videos', // 过滤已收藏
     FILTER_DOWNLOADED: 'filter_downloaded_videos', // 过滤已下载
     FILTER_PANEL_EXPANDED: 'filter_panel_expanded', // 筛选面板展开状态
+    FILTER_PANEL_X: 'filter_panel_x',               // 悬浮面板X百分比坐标
+    FILTER_PANEL_Y: 'filter_panel_y',               // 悬浮面板Y百分比坐标
 
     // === 新增：分辨率过滤相关 ===
     FILTER_RESOLUTION_8K: 'filter_res_8k',

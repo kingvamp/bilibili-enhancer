@@ -15,23 +15,38 @@
     align-items: center;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     pointer-events: none;
+    transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1), top 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 拖拽时的即时无延迟响应 */
+#gemini-floating-filter.gemini-dragging {
+    transition: none !important;
+}
+
+#gemini-floating-filter.gemini-dragging #gemini-filter-toggle {
+    transition: none !important;
+    cursor: grabbing;
+    box-shadow: 0 8px 24px rgba(251, 114, 153, 0.6);
+    transform: scale(1.08);
+    opacity: 0.85;
 }
 
 #gemini-filter-toggle {
     pointer-events: auto;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%; /* 始终保持完美正圆形 */
-    background: rgba(251, 114, 153, 0.9);
+    background: rgba(251, 114, 153, 0.92);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(251, 114, 153, 0.4);
+    box-shadow: 0 4px 16px rgba(251, 114, 153, 0.35);
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    position: relative;
 }
 
 #gemini-filter-toggle svg {
@@ -44,6 +59,7 @@
 #gemini-filter-toggle:hover {
     transform: scale(1.1) rotate(15deg);
     background: rgba(251, 114, 153, 1);
+    box-shadow: 0 6px 20px rgba(251, 114, 153, 0.5);
 }
 
 #gemini-filter-toggle.hidden {
@@ -52,30 +68,85 @@
     transform: scale(0.5);
 }
 
+/* 过滤激活指示角标 */
+#gemini-filter-toggle.gemini-active::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background-color: #10b981; /* 活力绿代表过滤处于开启激活状态 */
+    border: 2px solid #fb7299;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+    animation: gemini-pulse 2s infinite;
+}
+
+@keyframes gemini-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+/* 面板通用过渡和定位设置 */
 #gemini-filter-panel {
     pointer-events: auto;
     position: absolute;
     top: 0;
-    left: 50%;
-    transform: translateX(-50%) translateY(-20px) scale(0.9);
     width: max-content;
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(24px) saturate(200%);
-    -webkit-backdrop-filter: blur(24px) saturate(200%);
-    border-radius: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 12px 64px rgba(0, 0, 0, 0.15);
-    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(28px) saturate(190%);
+    -webkit-backdrop-filter: blur(28px) saturate(190%);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+    padding: 14px 20px;
     opacity: 0;
     pointer-events: none;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
-#gemini-filter-panel.active {
+/* 1. 居中对齐 */
+#gemini-floating-filter.gemini-align-center #gemini-filter-panel {
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px) scale(0.9);
+}
+#gemini-floating-filter.gemini-align-center #gemini-filter-panel.active {
     transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 2. 靠左对齐 (往右展开) */
+#gemini-floating-filter.gemini-align-left #gemini-filter-panel {
+    left: 0;
+    right: auto;
+    transform: translateY(-20px) scale(0.9);
+}
+#gemini-floating-filter.gemini-align-left #gemini-filter-panel.active {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 3. 靠右对齐 (往左展开) */
+#gemini-floating-filter.gemini-align-right #gemini-filter-panel {
+    right: 0;
+    left: auto;
+    transform: translateY(-20px) scale(0.9);
+}
+#gemini-floating-filter.gemini-align-right #gemini-filter-panel.active {
+    transform: translateY(0) scale(1);
     opacity: 1;
     pointer-events: auto;
 }
@@ -97,7 +168,7 @@
 .gemini-filter-group {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .gemini-divider-v {
@@ -106,23 +177,47 @@
     background: rgba(0, 0, 0, 0.08);
 }
 
+/* 重置与关闭按钮 */
+#gemini-filter-reset,
 #gemini-filter-close {
-    margin-left: 8px;
-    width: 24px;
-    height: 24px;
-    border-radius: 12px;
+    margin-left: auto; /* 置于行尾 */
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
     background: rgba(0, 0, 0, 0.04);
     color: #6b7280;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+#gemini-filter-reset svg {
+    transition: transform 0.4s ease-in-out;
+}
+
+#gemini-filter-reset:hover svg {
+    transform: rotate(360deg);
+}
+
+#gemini-filter-reset:hover,
 #gemini-filter-close:hover {
-    background: rgba(251, 114, 153, 0.1);
+    background: rgba(251, 114, 153, 0.12);
     color: #fb7299;
+}
+
+/* 重置确认提示状态 */
+#gemini-filter-reset.gemini-confirming {
+    background: rgba(239, 68, 68, 0.12) !important;
+    color: #ef4444 !important;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.25);
+    animation: gemini-reset-blink 0.8s infinite alternate;
+}
+
+@keyframes gemini-reset-blink {
+    0% { opacity: 0.7; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.12); }
 }
 
 .gemini-sub-label {
@@ -131,18 +226,21 @@
 }
 
 .gemini-filter-input {
-    width: 55px;
-    padding: 4px 8px;
+    width: 50px;
+    padding: 3px 6px;
     border-radius: 6px;
     border: 1px solid rgba(0, 0, 0, 0.08);
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.65);
     font-size: 12px;
     outline: none;
     text-align: center;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .gemini-filter-input:focus {
     border-color: #fb7299;
+    box-shadow: 0 0 0 2px rgba(251, 114, 153, 0.2);
+    background: #fff;
 }
 
 /* Switch styling */
@@ -195,17 +293,39 @@ input:checked+.gemini-slider:before {
     padding: 3px 6px;
     border-radius: 6px;
     border: 1px solid rgba(0, 0, 0, 0.08);
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.65);
     font-size: 12px;
     outline: none;
     cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
+.gemini-select:focus {
+    border-color: #fb7299;
+    box-shadow: 0 0 0 2px rgba(251, 114, 153, 0.2);
+    background: #fff;
+}
+
+/* 时长筛选启用/禁用联动控制 */
+.gemini-duration-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.gemini-duration-controls.gemini-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    filter: grayscale(80%);
+}
+
+/* 分段选择器样式 */
 .gemini-segmented {
     display: flex;
     background: rgba(0, 0, 0, 0.04);
     padding: 2px;
-    border-radius: 9px;
+    border-radius: 10px;
     gap: 1px;
 }
 
@@ -213,9 +333,9 @@ input:checked+.gemini-slider:before {
     padding: 3px 10px;
     font-size: 11px;
     font-weight: 500;
-    border-radius: 7px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     color: #6b7280;
 }
 
@@ -226,26 +346,51 @@ input:checked+.gemini-slider:before {
 .gemini-segment-item.active {
     background: white;
     color: #fb7299;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
+/* 按钮标签化（药丸式）多选组 */
 .gemini-checkbox-group {
     display: flex;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .gemini-checkbox-item {
-    display: flex;
+    position: relative;
+    display: inline-flex;
     align-items: center;
-    gap: 4px;
-    font-size: 12px;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.04);
     color: #4b5563;
+    font-size: 11px;
+    font-weight: 500;
     cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     user-select: none;
+    border: 1px solid transparent;
 }
 
 .gemini-checkbox-item input {
-    accent-color: #fb7299;
-    cursor: pointer;
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
     margin: 0;
+}
+
+.gemini-checkbox-item:hover {
+    background: rgba(251, 114, 153, 0.08);
+    color: #fb7299;
+}
+
+/* 选中状态 CSS 表现 (利用 :has 完美解耦 JS) */
+.gemini-checkbox-item:has(input:checked) {
+    background: rgba(251, 114, 153, 0.09);
+    color: #fb7299;
+    border-color: rgba(251, 114, 153, 0.25);
+    box-shadow: 0 2px 8px rgba(251, 114, 153, 0.12);
+    transform: translateY(-0.5px);
 }
