@@ -91,3 +91,14 @@
 2.  打开 Chrome 扩展管理页 `chrome://extensions/`。
 3.  开启右上角 **"开发者模式"**。
 4.  点击 **"加载已解压的扩展程序"**，选择 `zip` 解压目录。
+
+---
+
+## 🔍 搜索记录
+
+### 2026-06-22 分辨率筛选功能参考方案
+*   **搜索主题**：Bilibili 视频分辨率过滤与画质设置浏览器扩展
+*   **GitHub/Skills.sh 搜索结论**：
+    *   **Bilibili-Auto-Quality (哔哩哔哩自动画质)**：该脚本通过模拟点击或直接调用播放器 API 在视频加载时自动切换最高画质（Dolby/8K/4K 等），常以 Userscript 形式存在。
+    *   **Bilibili Auto Highest Quality (Chrome Extension)**：一款专用的 Chrome 插件，旨在检测 B 站视频维度分辨率信息，并强制以最高画质进行播放。
+    *   **架构参考**：对 DOM 内的视频标题和卡片元素没有自带分辨率元数据的情况，参考上述方案，本项目通过 `VideoDataCenter.getVideoInfo(bvid)` 异步调用 B 站后台 API 获取视频实际维度（`width` / `height`），并通过 `getResolutionLabel` 计算出具体分辨率级别（如 8K/4K/2K/1080P/720P/SD），为过滤模块提供了可靠的元数据支持。

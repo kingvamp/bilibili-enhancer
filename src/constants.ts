@@ -36,7 +36,15 @@ export const STORAGE_KEYS = {
     FILTER_LIKED: 'filter_liked_videos',      // 过滤已点赞
     FILTER_FAVORITED: 'filter_favorited_videos', // 过滤已收藏
     FILTER_DOWNLOADED: 'filter_downloaded_videos', // 过滤已下载
-    FILTER_PANEL_EXPANDED: 'filter_panel_expanded' // 筛选面板展开状态
+    FILTER_PANEL_EXPANDED: 'filter_panel_expanded', // 筛选面板展开状态
+
+    // === 新增：分辨率过滤相关 ===
+    FILTER_RESOLUTION_8K: 'filter_res_8k',
+    FILTER_RESOLUTION_4K: 'filter_res_4k',
+    FILTER_RESOLUTION_2K: 'filter_res_2k',
+    FILTER_RESOLUTION_1080P: 'filter_res_1080p',
+    FILTER_RESOLUTION_720P: 'filter_res_720p',
+    FILTER_RESOLUTION_SD: 'filter_res_sd'
 };
 
 // === 新增：DOM 元素 ID 常量 ===

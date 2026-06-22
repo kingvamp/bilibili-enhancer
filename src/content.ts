@@ -11,6 +11,7 @@ import { DurationFilterModule } from './modules/durationFilter';
 import { OneClickFavoriteModule } from './modules/oneClickFavorite';
 import { FloatingFilterMenuModule } from './modules/FloatingFilterMenu';
 import { InteractionFilterModule } from './modules/interactionFilter';
+import { ResolutionFilterModule } from './modules/resolutionFilter';
 import { SpaceDynamicModule } from './modules/SpaceDynamicModule';
 import { FilterEngine } from './services/FilterEngine';
 
@@ -25,6 +26,7 @@ DurationFilterModule.init();
 OneClickFavoriteModule.init();
 FloatingFilterMenuModule.init();
 InteractionFilterModule.init();
+ResolutionFilterModule.init();
 SpaceDynamicModule.init();
 import { ToolbarManager } from './services/toolbarManager';
 

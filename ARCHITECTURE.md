@@ -26,6 +26,7 @@
 
 - **InteractionFilterModule**: 利用 `VideoDataCenter` 获取状态，通过 `FilterEngine` 执行隐藏。
 - **DurationFilterModule**: 利用本地 DOM 数据，通过 `FilterEngine` 执行隐藏。
+- **ResolutionFilterModule**: 利用 `VideoDataCenter` 获取分辨率数据，通过 `FilterEngine` 执行隐藏。
 - **ChargingBlockerModule**: 拦截充电专属内容，支持显示角标或视觉遮罩。
 - **ThumbnailEnhancerModule**: 在封面图上叠加分辨率、分 P 等元数据角标。
 
