@@ -23,7 +23,7 @@
     transition: none !important;
 }
 
-#gemini-floating-filter.gemini-dragging #gemini-filter-toggle {
+#gemini-floating-filter.gemini-dragging #gemini-filter-toggle:not(.hidden) {
     transition: none !important;
     cursor: grabbing;
     box-shadow: 0 8px 24px rgba(251, 114, 153, 0.6);
@@ -114,6 +114,23 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+/* 展开面板的空白与分类标题可拖动，控件区域保持原有操作。 */
+#gemini-filter-panel {
+    cursor: grab;
+}
+
+#gemini-filter-panel .gemini-duration-controls,
+#gemini-filter-panel .gemini-checkbox-group,
+#gemini-filter-panel .gemini-segmented {
+    cursor: default;
+}
+
+#gemini-floating-filter.gemini-dragging #gemini-filter-panel {
+    transition: none !important;
+    cursor: grabbing;
+    user-select: none;
 }
 
 /* 1. 居中对齐 */
@@ -314,9 +331,9 @@ input:checked+.gemini-slider:before {
     transition: opacity 0.3s ease, filter 0.3s ease;
 }
 
+/* 禁用状态由 input/select 的 disabled 控制，保留命中区域以排除拖动。 */
 .gemini-duration-controls.gemini-disabled {
     opacity: 0.4;
-    pointer-events: none;
     filter: grayscale(80%);
 }
 

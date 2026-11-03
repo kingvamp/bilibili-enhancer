@@ -27,6 +27,7 @@ interface BiliApiResponse {
 export class ChargingService {
   private static instance: ChargingService;
   private safeSet = new Set<string>();
+  private inFlight = new Map<string, Promise<boolean>>();
   private chargingSet = new Set<string>();
   private isBlocked = false;
   private cooldownTimer: number | null = null;
@@ -119,6 +120,15 @@ export class ChargingService {
     if (this.chargingSet.has(bvid)) return true;
     if (this.safeSet.has(bvid)) return false;
 
+    const pending = this.inFlight.get(bvid);
+    if (pending) return pending;
+    const request = this.fetchChargingStatus(bvid).finally(() => this.inFlight.delete(bvid));
+    this.inFlight.set(bvid, request);
+    return request;
+  }
+
+  /** 执行充电状态查询；扫描器和统计栏共享同一 BV 号的在途请求。 */
+  private async fetchChargingStatus(bvid: string): Promise<boolean> {
     try {
       const res = await fetch(`https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`);
       

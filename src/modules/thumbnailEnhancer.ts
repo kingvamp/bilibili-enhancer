@@ -78,8 +78,9 @@ function start() {
             });
 
             // 监听收藏变化
-            FavoriteService.getInstance().subscribe(() => {
+            FavoriteService.getInstance().subscribe((bvid) => {
                 showToast('收藏变化刷新');
+                renderer.refreshVideo(bvid);
                 titleBadge.check();
             });
             scanner.start();

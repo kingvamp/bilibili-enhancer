@@ -1,3 +1,4 @@
+// 统一调度卡片装饰器，供 PageScanner 扫描及收藏等状态变化触发渲染。
 import { BadgeDecorator } from './plugins';
 import { findTitleInCard, findClosestVideoCard, findCoverInElement, ensureLayeredContext, addMarker } from '../../utils/dom';
 
@@ -36,6 +37,14 @@ export class ThumbnailRenderer {
             const element = el as HTMLElement;
             const bvid = element.dataset.targetBvid;
             if (bvid) this.enqueue(element, bvid);
+        });
+    }
+
+    /** 刷新指定视频的所有已扫描卡片，复用现有角标样式和标题状态优先级。 */
+    public refreshVideo(bvid: string) {
+        const processed = document.querySelectorAll<HTMLElement>('[data-bili-enhanced-processed="true"]');
+        processed.forEach(element => {
+            if (element.dataset.targetBvid === bvid) this.enqueue(element, bvid);
         });
     }
 

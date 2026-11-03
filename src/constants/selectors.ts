@@ -128,8 +128,12 @@ export const SELECTORS = {
             '.nav-menu',
             '.international-footer'
         ],
-        // 封面预览屏蔽区域 (即：已经有封面图的区域，不需要额外弹出预览)
+        // 封面预览屏蔽区域：播放页主标题，以及已经有封面图的区域。
         PREVIEW_BLOCKERS: [
+            // 限定主标题结构，避免通用 .video-title 误伤合集、稍后再看等列表标题。
+            '.video-info-container .video-title',
+            '.video-info-title-inner',
+            '.v-title h1',
             '.bili-video-card',
             '.video-item',
             '.recommend-list',
@@ -155,6 +159,15 @@ export const SELECTORS = {
 
     // 个人空间相关
     SPACE: {
+        // 投稿视频页统计栏：来自当前空间页的原生 DOM 结构。
+        VIDEO_STATS: {
+            ROOT: '.space-upload .video',
+            ANCHOR: '.video-header .breadcrumb > .video-order-filter',
+            LIST: '.video-body > .video-list:not(.bili-enhanced-dynamic-mode)',
+            CARD: '.upload-video-card',
+            DYNAMIC_ACTIVE: '.bili-enhanced-dynamic-tag.active, .bili-enhanced-dynamic-tag.on',
+            DYNAMIC_LIST: '#bili-enhanced-dynamic-container'
+        },
         // 侧边栏分类列表容器
         SIDEBAR_NAV: [
             '.upload-sidenav .side-nav',

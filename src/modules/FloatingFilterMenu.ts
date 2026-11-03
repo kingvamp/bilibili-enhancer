@@ -5,6 +5,7 @@
 
 import { Module } from '../types';
 import { STORAGE_KEYS } from '../constants';
+import { bindFilterMenuDrag, getAlignmentClass, setAlignmentClass } from './floatingFilterMenuDrag';
 
 
 
@@ -166,98 +167,8 @@ function createMenu() {
     const closeBtn = document.getElementById('gemini-filter-close')!;
     const resetBtn = document.getElementById('gemini-filter-reset')!;
 
-    // === 拖动逻辑 ===
-    let startX = 0;
-    let startY = 0;
-    let containerStartX = 0;
-    let containerStartY = 0;
-    let isDragging = false;
-    let hasMoved = false;
-
-    const onMouseDown = (e: MouseEvent) => {
-        if (e.button !== 0) return; // 仅支持左键拖拽
-        
-        startX = e.clientX;
-        startY = e.clientY;
-        
-        const rect = container.getBoundingClientRect();
-        containerStartX = rect.left;
-        containerStartY = rect.top;
-        
-        hasMoved = false;
-        isDragging = true;
-        
-        container.classList.add('gemini-dragging');
-        
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-        
-        e.preventDefault();
-    };
-
-    const onMouseMove = (e: MouseEvent) => {
-        if (!isDragging) return;
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        
-        if (!hasMoved && Math.hypot(dx, dy) > 5) {
-            hasMoved = true;
-        }
-        
-        if (hasMoved) {
-            let leftVal = containerStartX + dx;
-            let topVal = containerStartY + dy;
-            
-            const rect = container.getBoundingClientRect();
-            const width = rect.width;
-            const height = rect.height;
-            
-            leftVal = Math.max(0, Math.min(window.innerWidth - width, leftVal));
-            topVal = Math.max(0, Math.min(window.innerHeight - height, topVal));
-            
-            container.style.left = `${leftVal}px`;
-            container.style.top = `${topVal}px`;
-            container.style.transform = 'none';
-        }
-    };
-
-    const onMouseUp = () => {
-        isDragging = false;
-        container.classList.remove('gemini-dragging');
-        
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-        
-        if (hasMoved) {
-            const rect = container.getBoundingClientRect();
-            const leftVal = rect.left;
-            const topVal = rect.top;
-            
-            const pctX = Math.max(0, Math.min(100, (leftVal / window.innerWidth) * 100));
-            const pctY = Math.max(0, Math.min(100, (topVal / window.innerHeight) * 100));
-            
-            container.style.left = `${pctX}%`;
-            container.style.top = `${pctY}%`;
-            container.style.transform = 'none';
-            
-            chrome.storage.sync.set({
-                [STORAGE_KEYS.FILTER_PANEL_X]: pctX,
-                [STORAGE_KEYS.FILTER_PANEL_Y]: pctY
-            });
-            
-            // 根据按钮所在X轴百分比区间，动态更新对齐方向类名
-            const alignClass = getAlignmentClass(pctX);
-            container.classList.remove('gemini-align-left', 'gemini-align-right', 'gemini-align-center');
-            container.classList.add(alignClass);
-        } else {
-            // 点击行为：展开面板
-            panel.classList.add('active');
-            toggle.classList.add('hidden');
-            chrome.storage.sync.set({ [STORAGE_KEYS.FILTER_PANEL_EXPANDED]: true });
-        }
-    };
-
-    toggle.addEventListener('mousedown', onMouseDown);
+    // 按钮和展开面板共用拖动、边界限制与位置保存。
+    bindFilterMenuDrag(container, toggle, panel);
 
     closeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -381,28 +292,6 @@ function updateActiveBadgeState() {
     });
 }
 
-/**
- * 根据 X 轴百分比坐标计算面板对齐类名，优化各区域展开方向
- */
-function getAlignmentClass(pctX: number): string {
-    if (pctX < 15) {
-        // 左边缘：向右展开
-        return 'gemini-align-left';
-    } else if (pctX < 40) {
-        // 靠左部分：向左展开
-        return 'gemini-align-right';
-    } else if (pctX <= 60) {
-        // 中间部分：居中展开
-        return 'gemini-align-center';
-    } else if (pctX <= 85) {
-        // 靠右部分：向右展开
-        return 'gemini-align-left';
-    } else {
-        // 右边缘：向左展开
-        return 'gemini-align-right';
-    }
-}
-
 function bindData() {
     const durationEnable = document.getElementById('gemini-duration-enable') as HTMLInputElement;
     const durationMin = document.getElementById('gemini-duration-min') as HTMLInputElement;
@@ -437,7 +326,8 @@ function bindData() {
         STORAGE_KEYS.FILTER_RESOLUTION_720P,
         STORAGE_KEYS.FILTER_RESOLUTION_SD,
         STORAGE_KEYS.FILTER_PANEL_X,
-        STORAGE_KEYS.FILTER_PANEL_Y
+        STORAGE_KEYS.FILTER_PANEL_Y,
+        STORAGE_KEYS.FILTER_PANEL_ALIGNMENT
     ];
 
     chrome.storage.sync.get(keys, (res) => {
@@ -452,9 +342,10 @@ function bindData() {
             container.style.left = `${posX}%`;
             container.style.top = `${posY}%`;
             container.style.transform = 'none';
-            const alignClass = getAlignmentClass(posX);
-            container.classList.remove('gemini-align-left', 'gemini-align-right', 'gemini-align-center');
-            container.classList.add(alignClass);
+            const savedAlignment = res[STORAGE_KEYS.FILTER_PANEL_ALIGNMENT];
+            const alignment = typeof savedAlignment === 'string' && ['gemini-align-left', 'gemini-align-right', 'gemini-align-center'].includes(savedAlignment)
+                ? savedAlignment : getAlignmentClass(posX);
+            setAlignmentClass(container, alignment);
         } else {
             container.classList.remove('gemini-align-left', 'gemini-align-right');
             container.classList.add('gemini-align-center');

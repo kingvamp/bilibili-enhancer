@@ -94,7 +94,20 @@
 
 ---
 
+## 当前页视频统计
+
+- 投稿视频页排序按钮组右侧显示已点赞、已收藏、已下载、充电视频数量，不依赖“更多筛选”按钮是否存在。
+- 仅统计当前页已加载的视频，按 BV 号去重，包含被插件隐藏的卡片；四项独立计数。
+- 翻页、列表更新、快捷收藏以及下载历史同步/清空后更新；查询未完成显示 `…`，部分已确认显示 `数量+`，无法获取且无已确认数量显示 `—`，悬停可查看说明。
+- 当前实现已通过构建，尚未运行验证；待验证布局、翻页、隐藏筛选、状态同步和接口失败场景。
+
 ## 🔍 搜索记录
+
+### 2026-11-02 当前页视频统计
+- 搜索主题：Skills.sh 浏览器扩展 DOM 统计、GitHub Bilibili 空间页增强及统计。
+- [Skills.sh Browser Extension Connector](https://www.skills.sh/timerise-ai/browser-extension-connector/browser-extension-connector) 为通用浏览器连接方案；[GitHub 空间导航资料](https://github.com/browser-use/browser-harness/blob/main/agent-workspace/domain-skills/bilibili/navigation.md) 描述空间导航。本次检索未找到可直接复用的四项当前页统计组件。
+- 实现决定：不新增依赖，复用 FilterEngine、VideoDataCenter、DownloadHistoryService、ChargingService；通过只读查看实际空间页 DOM 确定挂载和列表选择器。
+
 
 ### 2026-06-22 分辨率筛选功能参考方案
 *   **搜索主题**：Bilibili 视频分辨率过滤与画质设置浏览器扩展

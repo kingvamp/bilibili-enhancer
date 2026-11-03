@@ -1,3 +1,4 @@
+// 列表封面悬停预览；通过共享 selectors 排除播放页主标题等非预览区域。
 import { Module } from '../types';
 import { COVER_SIZES, STORAGE_KEYS, DOM_IDS } from '../constants'; // 引入公共常量
 import { SELECTORS } from '../constants/selectors';
@@ -83,14 +84,18 @@ function updatePosition(e: MouseEvent) {
 }
 
 // === 事件监听器 ===
+// 响应可预览入口的悬停，移入屏蔽区域时清理已有预览。
 function handleMouseOver(e: MouseEvent) {
     if (!isRunning) return;
     
     const target = e.target as HTMLElement;
-    // 屏蔽已经有大封面的区域，以及全局导航排除区
+    // 屏蔽播放页主标题、已有大封面的区域，以及全局导航排除区。
     const isExcluded = target.closest(SELECTORS.SCANNER.EXCLUDED_AREAS.join(', '));
-    const isAlreadyCovered = target.closest(SELECTORS.SCANNER.PREVIEW_BLOCKERS.join(', '));
-    if (isExcluded || isAlreadyCovered) return;
+    const isPreviewBlocked = target.closest(SELECTORS.SCANNER.PREVIEW_BLOCKERS.join(', '));
+    if (isExcluded || isPreviewBlocked) {
+        if (tooltip) tooltip.style.display = 'none';
+        return;
+    }
 
     let bvid: string | null = null;
     let targetElement: HTMLElement | null = null;

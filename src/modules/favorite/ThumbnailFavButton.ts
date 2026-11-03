@@ -60,7 +60,7 @@ export class ThumbnailFavButton {
                 try {
                     const aid = this.getAid(bvid);
                     if (!aid) throw new Error('获取AID失败');
-                    await this.service.doFavorite(aid);
+                    await this.service.doFavorite(aid, bvid);
                     this.markAsSuccess(btn);
                     setTimeout(() => btn.remove(), 1500);
                 } catch (err) {

@@ -30,6 +30,11 @@
 - **ChargingBlockerModule**: 拦截充电专属内容，支持显示角标或视觉遮罩。
 - **ThumbnailEnhancerModule**: 在封面图上叠加分辨率、分 P 等元数据角标。
 
+- **FloatingFilterMenu / floatingFilterMenuDrag**：菜单负责筛选控件与状态绑定，拖动模块统一处理按钮和展开面板的拖动、控件区域排除、可见边界限制及位置保存。坐标与展开方向一同保存，方向变化时补偿位置，避免松手和刷新后跳位。
+
+- **SpaceVideoStatsModule**：在投稿视频页排序按钮组之后挂载统计栏，不依赖可选的“更多筛选”按钮；从当前视频列表提取 BV 号并去重，包含插件隐藏的卡片。复用 FilterEngine 的 DOM/扫描通知，列表替换时清理旧队列，以条目身份隔离过期异步响应；统计查询限制为三个视频并发，不抓取其他分页。
+- **统计状态同步**：VideoDataCenter 发布已确认互动状态；DownloadHistoryService 发布本地下载历史的同步、清空及初始化完成事件；ChargingService 合并同 BV 的在途查询，统计仅认可其已确认集合，避免把失败当作非充电。查询未知项显式显示为未完成，不按零统计。
+
 ## 数据流向
 
 ```mermaid

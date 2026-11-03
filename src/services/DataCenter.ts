@@ -10,10 +10,12 @@ import { ApiService, VideoRelation, VideoInfo } from './api';
 class DataCenter {
     private static instance: DataCenter;
     
-    private relationCache = new Map<string, VideoRelation>();
+    // 收藏接口只确认收藏状态；未查询到的点赞状态保持未知，避免覆盖已有数据。
+    private relationCache = new Map<string, Partial<VideoRelation>>();
     private infoCache = new Map<string, VideoInfo>();
+    private relationListeners = new Set<(bvid: string, relation: Partial<VideoRelation>) => void>();
     
-    private inFlightRelation = new Map<string, Promise<VideoRelation | null>>();
+    private inFlightRelation = new Map<string, Promise<Partial<VideoRelation> | null>>();
     private inFlightInfo = new Map<string, Promise<VideoInfo | null>>();
 
     private constructor() {}
@@ -28,17 +30,22 @@ class DataCenter {
     /**
      * 获取视频互动状态 (带缓存与去重)
      */
-    public async getVideoRelation(bvid: string): Promise<VideoRelation | null> {
-        if (this.relationCache.has(bvid)) return this.relationCache.get(bvid)!;
+    public async getVideoRelation(bvid: string): Promise<Partial<VideoRelation> | null> {
+        const cached = this.relationCache.get(bvid);
+        if (cached?.fav !== undefined && cached.like !== undefined) return cached;
         if (this.inFlightRelation.has(bvid)) return this.inFlightRelation.get(bvid)!;
 
         const promise = ApiService.getVideoRelationRaw(bvid).then(res => {
-            if (res) this.relationCache.set(bvid, res);
+            // 请求期间可能已完成收藏，已确认的本地更新优先于较早发出的查询结果。
+            const current = this.relationCache.get(bvid);
+            const relation = res ? { ...res, ...current } : current;
+            if (relation) this.setRelation(bvid, relation);
             this.inFlightRelation.delete(bvid);
-            return res;
-        }).catch(() => {
+            return relation ?? null;
+        }).catch(error => {
             this.inFlightRelation.delete(bvid);
-            return null;
+            console.warn('[DataCenter] 获取视频互动状态失败:', bvid, error);
+            return this.relationCache.get(bvid) ?? null;
         });
 
         this.inFlightRelation.set(bvid, promise);
@@ -66,10 +73,18 @@ class DataCenter {
     }
 
     /**
-     * 手动更新缓存 (例如在执行收藏操作后)
+     * 合并已确认的互动状态，只更新传入字段，保留其他已知状态。
      */
-    public setRelation(bvid: string, data: VideoRelation) {
-        this.relationCache.set(bvid, data);
+    public setRelation(bvid: string, data: Partial<VideoRelation>) {
+        const relation = { ...this.relationCache.get(bvid), ...data };
+        this.relationCache.set(bvid, relation);
+        this.relationListeners.forEach(callback => callback(bvid, relation));
+    }
+
+    /** 订阅已确认的互动状态，供当前页统计同步查询和快捷收藏结果。 */
+    public subscribeRelation(callback: (bvid: string, relation: Partial<VideoRelation>) => void) {
+        this.relationListeners.add(callback);
+        return () => this.relationListeners.delete(callback);
     }
 }
 

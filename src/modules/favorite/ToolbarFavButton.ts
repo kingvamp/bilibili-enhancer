@@ -52,7 +52,7 @@ export class ToolbarFavButton {
                 const aid = bvToAv(clickBvid);
                 if (!aid || aid === clickBvid) throw new Error('获取AID失败');
                 
-                await this.service.doFavorite(aid);
+                await this.service.doFavorite(aid, clickBvid);
                 this.markAsSuccess(btn);
                 this.lastBvid = clickBvid;
             } catch (err) {

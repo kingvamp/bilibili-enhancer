@@ -13,6 +13,7 @@ import { FloatingFilterMenuModule } from './modules/FloatingFilterMenu';
 import { InteractionFilterModule } from './modules/interactionFilter';
 import { ResolutionFilterModule } from './modules/resolutionFilter';
 import { SpaceDynamicModule } from './modules/SpaceDynamicModule';
+import { SpaceVideoStatsModule } from './modules/SpaceVideoStats';
 import { FilterEngine } from './services/FilterEngine';
 
 // === 第一部分：封面预览 (全局功能) ===
@@ -28,6 +29,7 @@ FloatingFilterMenuModule.init();
 InteractionFilterModule.init();
 ResolutionFilterModule.init();
 SpaceDynamicModule.init();
+SpaceVideoStatsModule.init();
 import { ToolbarManager } from './services/toolbarManager';
 
 // === 视频页专用功能 ===

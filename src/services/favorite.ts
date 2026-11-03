@@ -1,11 +1,11 @@
+// 统一执行快捷收藏，并通过 DataCenter 和订阅事件同步卡片及播放页状态。
 import { STORAGE_KEYS } from '../constants';
-import { ApiService } from './api';
 import { VideoDataCenter } from './DataCenter';
 
 export class FavoriteService {
     private static instance: FavoriteService;
     private defaultFolderId: string | null = null;
-    private listeners: Set<() => void> = new Set();
+    private listeners: Set<(bvid: string) => void> = new Set();
 
     private constructor() {
         chrome.storage.local.get([STORAGE_KEYS.DEFAULT_FAV_FOLDER_ID], (res) => {
@@ -60,9 +60,9 @@ export class FavoriteService {
     }
 
     /**
-     * 执行收藏操作
+     * 执行收藏操作，成功后先更新对应视频缓存，再通知界面刷新。
      */
-    public async doFavorite(aid: string): Promise<boolean> {
+    public async doFavorite(aid: string, bvid: string): Promise<boolean> {
         const folderId = await this.getDefaultFolderId();
         if (!folderId) throw new Error('无法获取收藏夹');
 
@@ -89,20 +89,23 @@ export class FavoriteService {
 
         const data = await res.json();
         if (data.code === 0 || data.code === 11007) {
-            this.notify();
+            VideoDataCenter.setRelation(bvid, { fav: true });
+            this.notify(bvid);
             return true;
         } else {
             throw new Error(data.message || `API错误(${data.code})`);
         }
     }
 
-    public subscribe(callback: () => void) {
+    /** 订阅收藏成功事件，接收发生变化的视频 BV 号。 */
+    public subscribe(callback: (bvid: string) => void) {
         this.listeners.add(callback);
         return () => this.listeners.delete(callback);
     }
 
-    private notify() {
-        this.listeners.forEach(cb => cb());
+    /** 通知订阅方刷新对应视频。 */
+    private notify(bvid: string) {
+        this.listeners.forEach(cb => cb(bvid));
     }
 
     /**
